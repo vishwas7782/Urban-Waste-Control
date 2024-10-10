@@ -226,9 +226,22 @@ nav ul li a:hover {
 }
 /* Form Styling */
 form {
-    margin-top: 20px;
     display: flex;
     flex-direction: column;
+    width: 100%;
+    max-width: 400px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 5px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+form select {
+    padding: 10px;
+    font-size: 1rem;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
 }
 
 form label {
@@ -372,4 +385,40 @@ footer ul li a {
 
 footer ul li a:hover {
     text-decoration: underline;
+}
+/* Dashboard Section Styles */
+.dashboard-section {
+    padding: 50px 0;
+    background-color: #fff;
+}
+
+.dashboard {
+    margin-top: 30px;
+    text-align: center;
+}
+
+/* User Dashboard updated*/ 
+#userDashboard,
+#employeeDashboard {
+    display: none; /* Default to hidden */
+}
+
+/* User Concerns Section */
+#userConcerns {
+    background-color: #f1f1f1;
+    padding: 20px;
+    border-radius: 5px;
+    margin-top: 20px;
+}
+
+/* Update Schedule Form */
+#updateScheduleForm {
+    margin-top: 20px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .container {
+        width: 90%;
+    }
 }
