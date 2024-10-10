@@ -43,7 +43,12 @@
 
                 <label for="confirm-password">Confirm Password:</label>
                 <input type="password" id="confirm-password" name="confirm-password" required>
-
+                <label for="role">Role:</label>
+                <select id="role" name="role" required>
+                    <option value="">Select Role</option>
+                    <option value="user">Public</option>
+                    <option value="municipal">Municipal Employee</option>
+                </select>
                 <button type="submit" class="btn">Sign Up</button>
             </form>
             <p>Already have an account? <a href="login.html">Login here</a></p>
@@ -55,5 +60,7 @@
             <p>Urban Waste Control System | © 2024 All rights reserved</p>
         </div>
     </footer>
+    <script src="auth.js"></script>
 </body>
+
 </html>

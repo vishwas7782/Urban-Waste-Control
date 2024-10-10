@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Urban Waste Control</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">
+                <a href="index.html">
+                    <img src="/Images/logo2NoBg.png" alt="Urban Waste Control Logo">
+                    <span>Urban Waste Control</span>
+                </a>
+            </div>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="logout.html">Logout</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Dashboard Section -->
+    <section id="dashboard" class="dashboard-section">
+        <div class="container">
+            <h1>Welcome to your Dashboard</h1>
+            <p id="role"></p>
+
+            <!-- User Section -->
+            <div id="userDashboard" class="dashboard" style="display: none;">
+                <h2>Public User Actions</h2>
+                <button id="raiseConcernBtn">Raise Concern</button>
+                <div id="concernForm" style="display: none;">
+                    <h3>Raise a Concern</h3>
+                    <form id="raiseConcernForm">
+                        <label for="description">Concern Description:</label>
+                        <textarea id="description" name="description" required></textarea>
+                        <button type="submit">Submit Concern</button>
+                    </form>
+                </div>
+
+                <h2>View Garbage Collection Schedule</h2>
+                <div id="schedule"></div>
+
+                <h2>Report Garbage at Public Place</h2>
+                <form id="publicGarbageForm">
+                    <label for="garbageLocation">Location:</label>
+                    <input type="text" id="garbageLocation" name="garbageLocation" required>
+                    <label for="garbageImage">Upload Image:</label>
+                    <input type="file" id="garbageImage" name="garbageImage" accept="image/*" required>
+                    <button type="submit">Report Garbage</button>
+                </form>
+            </div>
+
+            <!-- Municipal Employee Section -->
+            <div id="employeeDashboard" class="dashboard" style="display: none;">
+                <h2>Municipal Employee Actions</h2>
+
+                <h3>View Concerns Raised by Users</h3>
+                <div id="userConcerns"></div>
+
+                <h3>Update Garbage Collection Schedule</h3>
+                <form id="updateScheduleForm">
+                    <label for="scheduleDate">Date:</label>
+                    <input type="date" id="scheduleDate" name="scheduleDate" required>
+                    <label for="scheduleTime">Time:</label>
+                    <input type="time" id="scheduleTime" name="scheduleTime" required>
+                    <button type="submit">Update Schedule</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <p>Urban Waste Control System | © 2024 All rights reserved</p>
+        </div>
+    </footer>
+
+    <!-- Include JavaScript -->
+    <script src="auth.js"></script>
+    <!-- <script>
+        // Fetch user role from localStorage and display appropriate dashboard
+        const userRole = localStorage.getItem('userRole'); // Assuming the role is stored in localStorage after login
+
+        if (userRole === 'user') {
+            document.getElementById('role').textContent = 'You are logged in as a Public User';
+            document.getElementById('userDashboard').style.display = 'block';
+        } else if (userRole === 'municipal') {
+            document.getElementById('role').textContent = 'You are logged in as a Municipal Employee';
+            document.getElementById('employeeDashboard').style.display = 'block';
+        }
+    </script> -->
+</body>
+</html>
