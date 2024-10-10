@@ -1,0 +1,375 @@
+/* General Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background-color: #f9f9f9;
+}
+
+.container {
+    width: 80%;
+    margin: 0 auto;
+}
+
+h1, h2, h3 {
+    color: #0056b3;
+    margin-bottom: 20px;
+}
+
+p, ul, li {
+    color: #555;
+}
+
+/* Navigation Bar */
+header {
+    background-color: #0056b3;
+    padding: 0 0;
+    color: #fff;
+    padding: 1 rem 0;
+}
+
+nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+
+}
+nav a{
+    text-decoration: none;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+}
+
+.logo img {
+    height: 80px;
+    width: auto;
+    margin-right: 10px;
+}
+.logo span {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #fff;
+}
+nav ul {
+    list-style: none;
+}
+
+nav ul li {
+    display: inline;
+    margin-left: 20px;
+}
+
+nav ul li a {
+    color: #fff;
+    text-decoration: none;
+    font-size: 1rem;
+}
+
+nav ul li a:hover {
+    text-decoration: underline;
+}
+
+.login-btn, .signup-btn {
+    background-color: #ffcc00;
+    padding: 5px 15px;
+    border-radius: 5px;
+    font-weight: bold;
+}
+
+.login-btn:hover, .signup-btn:hover {
+    background-color: #ff9900;
+}
+
+/* Banner Section */
+.banner {
+    background: url('/Images/Transport.jpg') no-repeat center center/cover;
+    /* background-image: linear-gradient(rgba(4,9,30,0.7),rgba(4,9,30,0.7)),url(/Images/Transport.jpg); */
+    height: 80vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.banner h1 {
+    font-size: 3rem;
+    margin-bottom: 20px;
+    background-color: #fffcfc;
+    border-radius: 10px;
+}
+
+.banner p {
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+    color: #fff;
+
+}
+
+.btn {
+    padding: 10px 20px;
+    background-color: #ffcc00;
+    color: #333;
+    text-decoration: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    margin: 10px;
+}
+
+.btn:hover {
+    background-color: #ff9900;
+}
+
+/* Features Section */
+#features {
+    padding: 50px 0;
+    background-color: #f9f9f9;
+    text-align: center;
+}
+
+.features-grid {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 30px;
+}
+
+.feature {
+    flex-basis: 30%;
+    /* background-color: #fff; */
+    background-color: #e8dbdbd9;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+}
+.feature:hover{
+    box-shadow: 0 0 20px 0px rgba(0,0,0,0.629);
+}
+
+.feature h3 {
+    margin-bottom: 15px;
+}
+
+.feature p {
+    font-size: 1rem;
+}
+
+/* Section Styling */
+.about-section, .services-section, .report-section, .schedule-section, .contact-section {
+    padding: 50px 0;
+    background-color: #fff;
+}
+
+.about-section h2, .services-section h2, .contact-section h2 {
+    margin-top: 30px;
+}
+.team-grid {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    margin-top: 30px;
+}
+
+.team-member {
+    flex-basis: 22%; /* Adjust width to fit 4 members per row */
+    text-align: center;
+    background-color: #fff;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.team-member:hover {
+    transform: scale(1.05); /* Slight zoom effect on hover */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Shadow effect */
+}
+
+.team-member img {
+    width: 100%;
+    height: auto;
+    border-radius: 50%; /* Makes the image circular */
+    margin-bottom: 15px;
+}
+
+.team-member h3 {
+    margin-bottom: 10px;
+    font-size: 1.2rem;
+    color: #0056b3;
+}
+
+.team-member p {
+    font-size: 1rem;
+    color: #333;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+    .team-member {
+        flex-basis: 45%; /* Two members per row on smaller screens */
+    }
+}
+
+@media (max-width: 480px) {
+    .team-member {
+        flex-basis: 100%; /* One member per row on mobile screens */
+    }
+}
+/* Form Styling */
+form {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+form label {
+    margin: 10px 0 5px;
+    font-size: 1.1rem;
+}
+
+form input[type="text"], form input[type="email"], form input[type="file"], form textarea {
+    padding: 10px;
+    font-size: 1rem;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+form textarea {
+    resize: none;
+}
+
+form button {
+    padding: 10px 20px;
+    background-color: #0056b3;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+form button:hover {
+    background-color: #003d80;
+}
+/* Existing General Styles */
+/* ... (Your existing styles) */
+
+/* Specific Styles for Login and Signup Pages */
+
+/* Login and Signup Sections */
+.login-section, .signup-section {
+    padding: 50px 0;
+    background-color: #fff;
+}
+
+.login-section h1, .signup-section h1 {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.login-section form, .signup-section form {
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.login-section form label, .signup-section form label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.login-section form input, .signup-section form input {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+.login-section form button, .signup-section form button {
+    width: 100%;
+    padding: 10px;
+    background-color: #0056b3;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.login-section form button:hover, .signup-section form button:hover {
+    background-color: #003d80;
+}
+
+.login-section p, .signup-section p {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.login-section p a, .signup-section p a {
+    color: #0056b3;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.login-section p a:hover, .signup-section p a:hover {
+    text-decoration: underline;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .login-section form, .signup-section form {
+        width: 90%;
+    }
+}
+
+
+/* Schedule Section */
+.schedule-results ul {
+    margin-top: 20px;
+    list-style: none;
+}
+
+.schedule-results ul li {
+    padding: 10px 0;
+    font-size: 1.1rem;
+}
+
+/* Footer */
+footer {
+    background-color: #0056b3;
+    color: #fff;
+    padding: 20px 0;
+    text-align: center;
+}
+footer p{
+    color: #333;
+}
+footer ul {
+    list-style: none;
+    display: inline-block;
+    margin-top: 10px;
+}
+
+footer ul li {
+    display: inline;
+    margin-left: 10px;
+}
+
+footer ul li a {
+    color: #fff;
+    text-decoration: none;
+}
+
+footer ul li a:hover {
+    text-decoration: underline;
+}
