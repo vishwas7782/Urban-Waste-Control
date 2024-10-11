@@ -212,15 +212,25 @@ app.post('/report-public-garbage', authenticateToken, upload.single('image'), (r
     res.json({ success: true, message: 'Public garbage reported successfully', imageUrl: publicUrl });
 });
 
-// Route to Get the Garbage Collection Schedule
+// Route to Get the Garbage Collection Schedule with search functionality
 app.get('/view-schedule', authenticateToken, async (req, res) => {
     try {
-        const schedules = await Schedule.find(); // Fetch all schedules
+        const { area } = req.query; // Get the area from the query parameter if provided
+        let query = {};
+
+        // If an area is provided, we search based on it
+        if (area) {
+            query.area = { $regex: area, $options: 'i' }; // Case-insensitive search for area
+        }
+
+        const schedules = await Schedule.find(query); // Fetch filtered schedules based on area
         res.json({ success: true, schedules });
     } catch (error) {
         res.status(500).json({ success: false, message: 'Error retrieving schedule', error });
     }
 });
+
+
 
 // Route to Mark a Concern as Solved
 app.patch('/mark-solved/:id', authenticateToken, async (req, res) => {
@@ -238,7 +248,31 @@ app.patch('/mark-solved/:id', authenticateToken, async (req, res) => {
     }
 });
 
+// Route to Delete a Concern
+app.delete('/delete-concern/:id', authenticateToken, async (req, res) => {
+    if (req.userRole !== 'municipal') {
+        return res.status(403).json({ success: false, message: 'Access Denied: Municipal employees only' });
+    }
+
+    const { id } = req.params;
+
+    try {
+        await Concern.findByIdAndDelete(id); // Deleting the concern by ID
+        res.json({ success: true, message: 'Concern deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Error deleting concern', error });
+    }
+});
+
+
+
+
 // Start the Server
 app.listen(3000, () => {
     console.log('Server running on http://localhost:3000');
+});
+// Error handling middleware
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).json({ success: false, message: 'Internal Server Error' });
 });
