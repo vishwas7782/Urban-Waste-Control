@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Public Dashboard - Urban Waste Control</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body onload="checkLogin(); loadPublicDashboard();">
+    <header>
+        <nav>
+            <div class="logo">
+                <a href="index.html">
+                    <img src="images/logo2NoBg.png" alt="Urban Waste Control Logo">
+                    <span>Urban Waste Control</span>
+                </a>
+            </div>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="#" onclick="logout()">Logout</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <section id="dashboard" class="dashboard-section">
+        <div class="container">
+            <h1>Welcome to Your Public Dashboard</h1>
+
+            <h2>Dashboard Options</h2>
+            <div class="dashboard-options">
+                <div class="option">
+                    <h3>View Garbage Collection Schedule</h3>
+                    <input type="text" id="searchArea" placeholder="Search by area" oninput="searchSchedule()" class="search-input">
+                    <div id="schedule" class="schedule-list"></div>
+                </div>
+
+                <div class="option">
+                    <h3>Raise a Concern</h3>
+                    <form id="raiseConcernForm" onsubmit="submitConcern(event)">
+                        <label for="name">Name:</label>
+                        <input type="text" id="name" name="name" required>
+                        
+                        <label for="houseNumber">House Number:</label>
+                        <input type="text" id="houseNumber" name="houseNumber" required>
+                        
+                        <label for="locality">Locality:</label>
+                        <input type="text" id="locality" name="locality" required>
+                        
+                        <label for="mobileNum">Mobile Number:</label>
+                        <input type="tel" id="mobileNum" name="mobileNum" required>
+
+                        <label for="issueType">Issue Type:</label>
+                        <select id="issueType" name="issueType" required>
+                            <option value="Missed Garbage Collection">Missed Garbage Collection</option>
+                            <option value="Garbage Collection Vehicle Did Not Come">Garbage Collection Vehicle Did Not Come</option>
+                            <option value="Extra Garbage">Extra Garbage</option>
+                        </select>
+
+                        <label for="additionalDetails">Additional Details:</label>
+                        <textarea id="additionalDetails" name="additionalDetails"></textarea>
+
+                        <button type="submit">Submit Concern</button>
+                    </form>
+                </div>
+
+                <div class="option">
+                    <h3>Report Garbage at Public Place</h3>
+                    <form id="publicGarbageForm" onsubmit="reportGarbage(event)">
+                        <label for="location">Location:</label>
+                        <input type="text" id="location" name="location" required>
+
+                        <label for="locationLocality">Locality:</label>
+                        <input type="text" id="locationLocality" name="locationLocality" required>
+
+                        <label for="publicMobileNum">Mobile Number:</label>
+                        <input type="tel" id="publicMobileNum" name="publicMobileNum" required>
+
+                        <label for="publicAdditionalDetails">Additional Details:</label>
+                        <textarea id="publicAdditionalDetails" name="publicAdditionalDetails"></textarea>
+
+                        <label for="garbageImage">Upload Image:</label>
+                        <input type="file" id="garbageImage" name="garbageImage" accept="image/*" required>
+                        
+                        <button type="submit">Report Garbage</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <p>Urban Waste Control System | © 2024 All rights reserved</p>
+        </div>
+    </footer>
+
+    <script src="js/auth.js"></script>
+    <script>
+        async function loadPublicDashboard() {
+            const role = localStorage.getItem('role');
+            if (role !== 'user') {
+                alert('You do not have access to this dashboard');
+                window.location.href = 'login.html';
+            }
+            await loadSchedule(); // Load garbage collection schedule
+        }
+
+        // Search schedule by area
+        async function searchSchedule() {
+            const area = document.getElementById('searchArea').value;
+
+            try {
+                const response = await fetch('/view-schedule', {
+                    headers: {
+                        'Authorization': localStorage.getItem('token') // Add the token from localStorage
+                    }
+                });
+                const data = await response.json();
+                const scheduleDiv = document.getElementById('schedule');
+                scheduleDiv.innerHTML = ''; // Clear previous content
+
+                // Check if the schedule array is empty
+                if (!data.schedules.length) {
+                    scheduleDiv.innerHTML = `<p>No schedules available.</p>`;
+                    return;
+                }
+
+                // Filter and display the schedule
+                data.schedules.forEach(schedule => {
+                    if (schedule.area.toLowerCase().includes(area.toLowerCase())) {
+                        scheduleDiv.innerHTML += `<div class="schedule-item"><p><strong>${schedule.date} - ${schedule.time}</strong></p><p>Area: ${schedule.area}</p></div>`;
+                    }
+                });
+            } catch (error) {
+                alert('Error loading schedule: ' + error);
+            }
+        }
+
+        // Submit concern for public users
+        async function submitConcern(event) {
+            event.preventDefault();
+            const name = document.getElementById('name').value;
+            const houseNumber = document.getElementById('houseNumber').value;
+            const locality = document.getElementById('locality').value;
+            const mobileNum = document.getElementById('mobileNum').value;
+            const issueType = document.getElementById('issueType').value;
+            const additionalDetails = document.getElementById('additionalDetails').value;
+
+            const concernData = {
+                name,
+                houseNumber,
+                locality,
+                mobileNum,
+                issueType,
+                additionalDetails
+            };
+
+            try {
+                const response = await fetch('/raise-concern', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': localStorage.getItem('token') // Add the token from localStorage
+                    },
+                    body: JSON.stringify(concernData)
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    alert('Concern raised successfully');
+                    document.getElementById('raiseConcernForm').reset(); // Clear the form
+                } else {
+                    alert('Error raising concern: ' + data.message);
+                }
+            } catch (error) {
+                alert('Error: ' + error);
+            }
+        }
+
+        // Report public garbage for public users
+        async function reportGarbage(event) {
+            event.preventDefault();
+            const location = document.getElementById('location').value;
+            const locality = document.getElementById('locationLocality').value;
+            const mobileNum = document.getElementById('publicMobileNum').value;
+            const additionalDetails = document.getElementById('publicAdditionalDetails').value;
+            const image = document.getElementById('garbageImage').files[0];
+
+            const formData = new FormData();
+            formData.append('location', location);
+            formData.append('locality', locality);
+            formData.append('mobileNum', mobileNum);
+            formData.append('additionalDetails', additionalDetails);
+            formData.append('image', image);
+
+            try {
+                const response = await fetch('/report-public-garbage', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': localStorage.getItem('token') // Add the token from localStorage
+                    },
+                    body: formData // Send formData (including image)
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    alert('Garbage reported successfully');
+                    document.getElementById('publicGarbageForm').reset(); // Clear the form
+                } else {
+                    alert('Error reporting garbage: ' + data.message);
+                }
+            } catch (error) {
+                alert('Error: ' + error);
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Municipal Employee Dashboard - Urban Waste Control</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body onload="checkLogin(); loadMunicipalDashboard();">
+    <header>
+        <nav>
+            <div class="logo">
+                <a href="index.html">
+                    <img src="images/logo2NoBg.png" alt="Urban Waste Control Logo">
+                    <span>Urban Waste Control</span>
+                </a>
+            </div>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="#" onclick="logout()">Logout</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <section id="dashboard" class="dashboard-section">
+        <div class="container">
+            <h1>Welcome to Your Municipal Employee Dashboard</h1>
+
+            <h2>Dashboard Options</h2>
+            <div class="dashboard-options">
+                <div class="option">
+                    <h3>View Concerns Raised by Users</h3>
+                    <div id="userConcerns" class="concerns-list"></div>
+                </div>
+
+                <div class="option">
+                    <h3>Update Garbage Collection Schedule</h3>
+                    <form id="updateScheduleForm" onsubmit="updateSchedule(event)">
+                        <label for="employeeName">Employee Name:</label>
+                        <input type="text" id="employeeName" name="employeeName" required>
+
+                        <label for="area">Area:</label>
+                        <input type="text" id="area" name="area" required>
+
+                        <label for="scheduleDay">Day:</label>
+                        <input type="text" id="scheduleDay" name="scheduleDay" required>
+
+                        <label for="scheduleDate">Date:</label>
+                        <input type="date" id="scheduleDate" name="scheduleDate" required>
+
+                        <label for="scheduleTime">Time:</label>
+                        <input type="time" id="scheduleTime" name="scheduleTime" required>
+
+                        <button type="submit">Update Schedule</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <p>Urban Waste Control System | © 2024 All rights reserved</p>
+        </div>
+    </footer>
+
+    <script src="js/auth.js"></script>
+    <script>
+        function loadMunicipalDashboard() {
+            const role = localStorage.getItem('role');
+            if (role !== 'municipal') {
+                alert('You do not have access to this dashboard');
+                window.location.href = 'login.html';
+            }
+            loadUserConcerns(); // Load concerns for municipal employees
+        }
+
+        // Load concerns for municipal employees
+        async function loadUserConcerns() {
+            try {
+                const response = await fetch('/view-concerns', {
+                    headers: {
+                        'Authorization': localStorage.getItem('token') // Add the token from localStorage
+                    }
+                });
+                const data = await response.json();
+                const concernsDiv = document.getElementById('userConcerns');
+                concernsDiv.innerHTML = ''; // Clear previous content
+                data.concerns.forEach(concern => {
+                    concernsDiv.innerHTML += `<p>${concern.description} - ${concern.status} <button onclick="markSolved('${concern._id}')">Mark Solved</button></p>`;
+                });
+            } catch (error) {
+                alert('Error loading concerns: ' + error);
+            }
+        }
+
+        // Mark a concern as solved
+        async function markSolved(concernId) {
+            try {
+                const response = await fetch(`/mark-solved/${concernId}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Authorization': localStorage.getItem('token') // Add the token from localStorage
+                    }
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    alert('Concern marked as solved');
+                    loadUserConcerns(); // Refresh the concerns list
+                } else {
+                    alert('Error marking concern: ' + data.message);
+                }
+            } catch (error) {
+                alert('Error: ' + error);
+            }
+        }
+
+        // Update garbage collection schedule for municipal employees
+        async function updateSchedule(event) {
+            event.preventDefault();
+            const employeeName = document.getElementById('employeeName').value;
+            const area = document.getElementById('area').value;
+            const scheduleDay = document.getElementById('scheduleDay').value;
+            const scheduleDate = document.getElementById('scheduleDate').value;
+            const scheduleTime = document.getElementById('scheduleTime').value;
+
+            try {
+                const response = await fetch('/update-schedule', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': localStorage.getItem('token') // Add the token from localStorage
+                    },
+                    body: JSON.stringify({ employeeName, area, scheduleDay, scheduleDate, scheduleTime })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    alert('Schedule updated successfully');
+                    document.getElementById('updateScheduleForm').reset(); // Clear the form
+                } else {
+                    alert('Error updating schedule: ' + data.message);
+                }
+            } catch (error) {
+                alert('Error: ' + error);
+            }
+        }
+    </script>
+</body>
+</html>
