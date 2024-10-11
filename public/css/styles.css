@@ -373,6 +373,22 @@ form button:hover {
         width: 90%;
     }
 }
+.schedule-list {
+    max-height: 400px; /* Set a max height for scrolling */
+    overflow-y: auto; /* Enable vertical scrolling */
+}
+
+.schedule-item {
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    margin: 5px 0;
+    padding: 10px;
+    background-color: #f9f9f9;
+}
+
+.schedule-item p {
+    margin: 5px 0;
+}
 
 /* Schedule Section */
 .schedule-results ul {
