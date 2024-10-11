@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>View Schedule - Urban Waste Control</title>
     <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
     <!-- Navigation Bar -->
     <header>
@@ -33,20 +35,37 @@
     <section id="schedule" class="schedule-section">
         <div class="container">
             <h1>Garbage Collection Schedule</h1>
-            <form>
+            <form id="scheduleForm">
                 <label for="location">Enter Your Location:</label>
-                <input type="text" id="location" name="location" required>
+                <input type="text" id="location" name="location" list="locations" required>
+                <datalist id="locations">
+                    <option value="Rajeev Nagar">
+                    <option value="Aanad Nagar">
+                    <option value="Bhawna Nagar">
+                    <option value="Piplani">
+                    <option value="Indrapuri">
+                        <!-- Add more locations as needed -->
+                </datalist>
                 <button type="submit" class="btn">View Schedule</button>
             </form>
 
-            <!-- Schedule Results (placeholder content) -->
-            <div class="schedule-results">
-                <h2>Schedule for [Your Location]</h2>
-                <ul>
-                    <li>Monday - 8:00 AM</li>
-                    <li>Wednesday - 8:00 AM</li>
-                    <li>Friday - 8:00 AM</li>
+            <!-- Loading Indicator -->
+            <div id="loading" class="loading" style="display: none;">
+                <p>Loading schedule...</p>
+            </div>
+
+            <!-- Schedule Results -->
+            <div id="scheduleResults" class="schedule-results" style="display: none;">
+                <h2>Schedule for <span id="userLocation"></span></h2>
+                <ul id="scheduleList">
+                    <!-- Dynamic Schedule Items Will Appear Here -->
                 </ul>
+            </div>
+
+            <!-- Error Message -->
+            <div id="errorMessage" class="error-message" style="display: none;">
+                <p>Sorry, we couldn't find a schedule for your location. Please check your input or try a different
+                    location.</p>
             </div>
         </div>
     </section>
@@ -62,5 +81,58 @@
             </ul>
         </div>
     </footer>
+
+    <!-- JavaScript to Handle Schedule Form Submission -->
+    <script src="schedule.js"></script>
+    <script src="server.js"></script>
 </body>
+
+</html>
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schedule App</title>
+</head>
+
+<body>
+    <h1>Check Schedule</h1>
+    <input type="text" id="location" placeholder="Enter location (e.g., Rajeev Nagar)">
+    <button id="getSchedule">Get Schedule</button>
+    <div id="scheduleResult"></div>
+
+    <script>
+        document.getElementById('getSchedule').addEventListener('click', async () => {
+            const location = document.getElementById('location').value;
+            try {
+                const response = await fetch('http://localhost:3000/api/schedule', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ location }),
+                });
+                const data = await response.json();
+
+                const scheduleResult = document.getElementById('scheduleResult');
+                scheduleResult.innerHTML = '';
+
+                if (data.success) {
+                    const schedule = data.schedule.map(entry => `<p>${entry.day}: ${entry.time}</p>`).join('');
+                    scheduleResult.innerHTML = `<h2>Schedule for ${location}</h2>${schedule}`;
+                } else {
+                    scheduleResult.innerHTML = `<p>${data.message}</p>`;
+                }
+            } catch (error) {
+                console.error('Error fetching schedule:', error);
+                document.getElementById('scheduleResult').innerHTML = '<p>Error fetching schedule.</p>';
+            }
+        });
+    </script>
+    <script src="server.js"></script>
+</body>
+
 </html>
