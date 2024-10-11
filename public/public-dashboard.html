@@ -28,29 +28,26 @@
 
             <h2>Dashboard Options</h2>
             <div class="dashboard-options">
-
-                <!-- View Garbage Collection Schedule -->
                 <div class="option">
                     <h3>View Garbage Collection Schedule</h3>
                     <input type="text" id="searchArea" placeholder="Search by area" oninput="searchSchedule()" class="search-input">
                     <div id="schedule" class="schedule-list"></div>
                 </div>
 
-                <!-- Raise a Concern -->
                 <div class="option">
                     <h3>Raise a Concern</h3>
                     <form id="raiseConcernForm" onsubmit="submitConcern(event)">
                         <label for="name">Name:</label>
-                        <input type="text" id="name" name="name" required placeholder="Enter your name">
+                        <input type="text" id="name" name="name" required>
                         
                         <label for="houseNumber">House Number:</label>
-                        <input type="text" id="houseNumber" name="houseNumber" required placeholder="Enter your house number">
+                        <input type="text" id="houseNumber" name="houseNumber" required>
                         
                         <label for="locality">Locality:</label>
-                        <input type="text" id="locality" name="locality" required placeholder="Enter your locality">
+                        <input type="text" id="locality" name="locality" required>
                         
                         <label for="mobileNum">Mobile Number:</label>
-                        <input type="tel" id="mobileNum" name="mobileNum" required placeholder="Enter your mobile number">
+                        <input type="tel" id="mobileNum" name="mobileNum" required>
 
                         <label for="issueType">Issue Type:</label>
                         <select id="issueType" name="issueType" required>
@@ -60,31 +57,30 @@
                         </select>
 
                         <label for="additionalDetails">Additional Details:</label>
-                        <textarea id="additionalDetails" name="additionalDetails" placeholder="Provide additional details (optional)"></textarea>
+                        <textarea id="additionalDetails" name="additionalDetails"></textarea>
 
                         <button type="submit">Submit Concern</button>
                     </form>
                 </div>
 
-                <!-- Report Garbage at Public Place -->
                 <div class="option">
                     <h3>Report Garbage at Public Place</h3>
                     <form id="publicGarbageForm" onsubmit="reportGarbage(event)">
                         <label for="location">Location:</label>
-                        <input type="text" id="location" name="location" required placeholder="Enter the location of the garbage">
+                        <input type="text" id="location" name="location" required>
 
                         <label for="locationLocality">Locality:</label>
-                        <input type="text" id="locationLocality" name="locationLocality" required placeholder="Enter the locality">
+                        <input type="text" id="locationLocality" name="locationLocality" required>
 
                         <label for="publicMobileNum">Mobile Number:</label>
-                        <input type="tel" id="publicMobileNum" name="publicMobileNum" required placeholder="Enter your mobile number">
+                        <input type="tel" id="publicMobileNum" name="publicMobileNum" required>
 
                         <label for="publicAdditionalDetails">Additional Details:</label>
-                        <textarea id="publicAdditionalDetails" name="publicAdditionalDetails" placeholder="Provide additional details (optional)"></textarea>
+                        <textarea id="publicAdditionalDetails" name="publicAdditionalDetails"></textarea>
 
                         <label for="garbageImage">Upload Image:</label>
                         <input type="file" id="garbageImage" name="garbageImage" accept="image/*" required>
-
+                        
                         <button type="submit">Report Garbage</button>
                     </form>
                 </div>
