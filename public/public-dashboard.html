@@ -28,26 +28,29 @@
 
             <h2>Dashboard Options</h2>
             <div class="dashboard-options">
+
+                <!-- View Garbage Collection Schedule -->
                 <div class="option">
                     <h3>View Garbage Collection Schedule</h3>
                     <input type="text" id="searchArea" placeholder="Search by area" oninput="searchSchedule()" class="search-input">
                     <div id="schedule" class="schedule-list"></div>
                 </div>
 
+                <!-- Raise a Concern -->
                 <div class="option">
                     <h3>Raise a Concern</h3>
                     <form id="raiseConcernForm" onsubmit="submitConcern(event)">
                         <label for="name">Name:</label>
-                        <input type="text" id="name" name="name" required>
+                        <input type="text" id="name" name="name" required placeholder="Enter your name">
                         
                         <label for="houseNumber">House Number:</label>
-                        <input type="text" id="houseNumber" name="houseNumber" required>
+                        <input type="text" id="houseNumber" name="houseNumber" required placeholder="Enter your house number">
                         
                         <label for="locality">Locality:</label>
-                        <input type="text" id="locality" name="locality" required>
+                        <input type="text" id="locality" name="locality" required placeholder="Enter your locality">
                         
                         <label for="mobileNum">Mobile Number:</label>
-                        <input type="tel" id="mobileNum" name="mobileNum" required>
+                        <input type="tel" id="mobileNum" name="mobileNum" required placeholder="Enter your mobile number">
 
                         <label for="issueType">Issue Type:</label>
                         <select id="issueType" name="issueType" required>
@@ -57,30 +60,31 @@
                         </select>
 
                         <label for="additionalDetails">Additional Details:</label>
-                        <textarea id="additionalDetails" name="additionalDetails"></textarea>
+                        <textarea id="additionalDetails" name="additionalDetails" placeholder="Provide additional details (optional)"></textarea>
 
                         <button type="submit">Submit Concern</button>
                     </form>
                 </div>
 
+                <!-- Report Garbage at Public Place -->
                 <div class="option">
                     <h3>Report Garbage at Public Place</h3>
                     <form id="publicGarbageForm" onsubmit="reportGarbage(event)">
                         <label for="location">Location:</label>
-                        <input type="text" id="location" name="location" required>
+                        <input type="text" id="location" name="location" required placeholder="Enter the location of the garbage">
 
                         <label for="locationLocality">Locality:</label>
-                        <input type="text" id="locationLocality" name="locationLocality" required>
+                        <input type="text" id="locationLocality" name="locationLocality" required placeholder="Enter the locality">
 
                         <label for="publicMobileNum">Mobile Number:</label>
-                        <input type="tel" id="publicMobileNum" name="publicMobileNum" required>
+                        <input type="tel" id="publicMobileNum" name="publicMobileNum" required placeholder="Enter your mobile number">
 
                         <label for="publicAdditionalDetails">Additional Details:</label>
-                        <textarea id="publicAdditionalDetails" name="publicAdditionalDetails"></textarea>
+                        <textarea id="publicAdditionalDetails" name="publicAdditionalDetails" placeholder="Provide additional details (optional)"></textarea>
 
                         <label for="garbageImage">Upload Image:</label>
                         <input type="file" id="garbageImage" name="garbageImage" accept="image/*" required>
-                        
+
                         <button type="submit">Report Garbage</button>
                     </form>
                 </div>
@@ -95,124 +99,5 @@
     </footer>
 
     <script src="js/auth.js"></script>
-    <script>
-        async function loadPublicDashboard() {
-            const role = localStorage.getItem('role');
-            if (role !== 'user') {
-                alert('You do not have access to this dashboard');
-                window.location.href = 'login.html';
-            }
-            await loadSchedule(); // Load garbage collection schedule
-        }
-
-        // Search schedule by area
-        async function searchSchedule() {
-            const area = document.getElementById('searchArea').value;
-
-            try {
-                const response = await fetch('/view-schedule', {
-                    headers: {
-                        'Authorization': localStorage.getItem('token') // Add the token from localStorage
-                    }
-                });
-                const data = await response.json();
-                const scheduleDiv = document.getElementById('schedule');
-                scheduleDiv.innerHTML = ''; // Clear previous content
-
-                // Check if the schedule array is empty
-                if (!data.schedules.length) {
-                    scheduleDiv.innerHTML = `<p>No schedules available.</p>`;
-                    return;
-                }
-
-                // Filter and display the schedule
-                data.schedules.forEach(schedule => {
-                    if (schedule.area.toLowerCase().includes(area.toLowerCase())) {
-                        scheduleDiv.innerHTML += `<div class="schedule-item"><p><strong>${schedule.date} - ${schedule.time}</strong></p><p>Area: ${schedule.area}</p></div>`;
-                    }
-                });
-            } catch (error) {
-                alert('Error loading schedule: ' + error);
-            }
-        }
-
-        // Submit concern for public users
-        async function submitConcern(event) {
-            event.preventDefault();
-            const name = document.getElementById('name').value;
-            const houseNumber = document.getElementById('houseNumber').value;
-            const locality = document.getElementById('locality').value;
-            const mobileNum = document.getElementById('mobileNum').value;
-            const issueType = document.getElementById('issueType').value;
-            const additionalDetails = document.getElementById('additionalDetails').value;
-
-            const concernData = {
-                name,
-                houseNumber,
-                locality,
-                mobileNum,
-                issueType,
-                additionalDetails
-            };
-
-            try {
-                const response = await fetch('/raise-concern', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': localStorage.getItem('token') // Add the token from localStorage
-                    },
-                    body: JSON.stringify(concernData)
-                });
-
-                const data = await response.json();
-                if (data.success) {
-                    alert('Concern raised successfully');
-                    document.getElementById('raiseConcernForm').reset(); // Clear the form
-                } else {
-                    alert('Error raising concern: ' + data.message);
-                }
-            } catch (error) {
-                alert('Error: ' + error);
-            }
-        }
-
-        // Report public garbage for public users
-        async function reportGarbage(event) {
-            event.preventDefault();
-            const location = document.getElementById('location').value;
-            const locality = document.getElementById('locationLocality').value;
-            const mobileNum = document.getElementById('publicMobileNum').value;
-            const additionalDetails = document.getElementById('publicAdditionalDetails').value;
-            const image = document.getElementById('garbageImage').files[0];
-
-            const formData = new FormData();
-            formData.append('location', location);
-            formData.append('locality', locality);
-            formData.append('mobileNum', mobileNum);
-            formData.append('additionalDetails', additionalDetails);
-            formData.append('image', image);
-
-            try {
-                const response = await fetch('/report-public-garbage', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': localStorage.getItem('token') // Add the token from localStorage
-                    },
-                    body: formData // Send formData (including image)
-                });
-
-                const data = await response.json();
-                if (data.success) {
-                    alert('Garbage reported successfully');
-                    document.getElementById('publicGarbageForm').reset(); // Clear the form
-                } else {
-                    alert('Error reporting garbage: ' + data.message);
-                }
-            } catch (error) {
-                alert('Error: ' + error);
-            }
-        }
-    </script>
 </body>
 </html>
