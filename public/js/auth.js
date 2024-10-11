@@ -90,32 +90,43 @@ function checkLogin() {
     }
 }
 
+// Load Public Dashboard
+async function loadPublicDashboard() {
+    const role = localStorage.getItem('role');
+    if (role !== 'user') {
+        alert('You do not have access to this dashboard');
+        window.location.href = 'login.html';
+    }
+    await loadSchedule(); // Load garbage collection schedule
+}
+
 // Search for garbage collection schedule (public user functionality)
+// Search and load schedule for public users
 async function searchSchedule() {
-    const area = document.getElementById('searchArea').value;
+    const area = document.getElementById('searchArea').value; // Get the search term
+    const scheduleDiv = document.getElementById('schedule');
+    scheduleDiv.innerHTML = ''; // Clear previous content
 
     try {
-        const response = await fetch(`/view-schedule`, {
+        const response = await fetch(`/view-schedule?area=${area}`, {
             headers: {
                 'Authorization': localStorage.getItem('token') // Add the token from localStorage
             }
         });
-        
-        const data = await response.json();
-        const scheduleDiv = document.getElementById('schedule');
-        scheduleDiv.innerHTML = ''; // Clear previous content
 
-        // Check if the schedule array is empty
-        if (!data.schedules.length) {
+        const data = await response.json();
+        if (!data.success || !data.schedules.length) {
             scheduleDiv.innerHTML = `<p>No schedules available for "${area}".</p>`;
             return;
         }
 
-        // Filter and display the schedule
+        // Render the filtered schedule data
         data.schedules.forEach(schedule => {
-            if (schedule.area.toLowerCase().includes(area.toLowerCase())) {
-                scheduleDiv.innerHTML += `<div class="schedule-item"><p><strong>${schedule.date} - ${schedule.time}</strong></p><p>Area: ${schedule.area}</p></div>`;
-            }
+            scheduleDiv.innerHTML += `
+                <div class="schedule-item">
+                    <p><strong>${schedule.date} - ${schedule.time}</strong></p>
+                    <p>Area: ${schedule.area}</p>
+                </div>`;
         });
     } catch (error) {
         alert('Error loading schedule: ' + error);
@@ -147,7 +158,6 @@ async function submitConcern(event) {
         const data = await response.json();
         if (data.success) {
             alert('Concern raised successfully');
-            // Clear the form fields
             document.getElementById('raiseConcernForm').reset(); // Clear the form
         } else {
             alert('Error raising concern: ' + data.message);
@@ -183,10 +193,137 @@ async function reportGarbage(event) {
         const data = await response.json();
         if (data.success) {
             alert('Garbage reported successfully');
-            // Clear the form fields
             document.getElementById('publicGarbageForm').reset(); // Clear the form
         } else {
             alert('Error reporting garbage: ' + data.message);
+        }
+    } catch (error) {
+        alert('Error: ' + error);
+    }
+}
+
+// Load Municipal Dashboard
+async function loadMunicipalDashboard() {
+    const role = localStorage.getItem('role');
+    if (role !== 'municipal') {
+        alert('You do not have access to this dashboard');
+        window.location.href = 'login.html';
+    }
+    await loadUserConcerns(); // Load concerns for municipal employees
+}
+
+// Load user concerns for municipal employees
+// Load concerns for municipal employees
+async function loadUserConcerns() {
+    try {
+        const response = await fetch('/view-concerns', {
+            headers: {
+                'Authorization': localStorage.getItem('token') // Add the token from localStorage
+            }
+        });
+        const data = await response.json();
+        const concernsDiv = document.getElementById('userConcerns');
+        concernsDiv.innerHTML = ''; // Clear previous content
+        
+        data.concerns.forEach(concern => {
+            // Create concern HTML
+            let concernHTML = `<p>
+                <strong>Issue Type:</strong> ${concern.issueType || 'N/A'}<br>
+                <strong>Locality:</strong> ${concern.locality || 'N/A'}<br>
+                <strong>Details:</strong> ${concern.additionalDetails || 'No additional details'}<br>
+                <strong>Status:</strong> ${concern.status} `;
+
+            // Add "Mark Solved" button if not yet resolved
+            if (concern.status === 'pending') {
+                concernHTML += `<button onclick="markSolved('${concern._id}')">Mark Solved</button>`;
+            }
+
+            // Add "Delete" button if the concern is resolved
+            if (concern.status === 'resolved') {
+                concernHTML += `<button onclick="deleteConcern('${concern._id}')">Delete</button>`;
+            }
+
+            concernHTML += `</p>`;
+            concernsDiv.innerHTML += concernHTML;
+        });
+    } catch (error) {
+        alert('Error loading concerns: ' + error);
+    }
+}
+
+// Mark a concern as solved
+async function markSolved(concernId) {
+    try {
+        const response = await fetch(`/mark-solved/${concernId}`, {
+            method: 'PATCH',
+            headers: {
+                'Authorization': localStorage.getItem('token') // Add the token from localStorage
+            }
+        });
+
+        const data = await response.json();
+        if (data.success) {
+            alert('Concern marked as solved');
+            loadUserConcerns(); // Refresh the concerns list
+        } else {
+            alert('Error marking concern: ' + data.message);
+        }
+    } catch (error) {
+        alert('Error: ' + error);
+    }
+}
+
+// Delete a concern
+async function deleteConcern(concernId) {
+    try {
+        const response = await fetch(`/delete-concern/${concernId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': localStorage.getItem('token'), // Ensure token is passed
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const data = await response.json(); // Parse the response as JSON
+        if (data.success) {
+            alert('Concern deleted successfully');
+            loadUserConcerns(); // Refresh the concerns list
+        } else {
+            alert('Error deleting concern: ' + data.message);
+        }
+    } catch (error) {
+        alert('Error: ' + error);
+    }
+}
+
+
+// Update garbage collection schedule for municipal employees
+async function updateSchedule(event) {
+    event.preventDefault();
+    const scheduleData = {
+        employeeName: document.getElementById('employeeName').value,
+        area: document.getElementById('area').value,
+        scheduleDay: document.getElementById('scheduleDay').value,
+        scheduleDate: document.getElementById('scheduleDate').value,
+        scheduleTime: document.getElementById('scheduleTime').value
+    };
+
+    try {
+        const response = await fetch('/update-schedule', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': localStorage.getItem('token') // Add the token from localStorage
+            },
+            body: JSON.stringify(scheduleData)
+        });
+
+        const data = await response.json();
+        if (data.success) {
+            alert('Schedule updated successfully');
+            document.getElementById('updateScheduleForm').reset(); // Clear the form
+        } else {
+            alert('Error updating schedule: ' + data.message);
         }
     } catch (error) {
         alert('Error: ' + error);
