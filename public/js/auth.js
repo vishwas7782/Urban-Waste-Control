@@ -101,37 +101,60 @@ async function loadPublicDashboard() {
 }
 
 // Search for garbage collection schedule (public user functionality)
-// Search and load schedule for public users
-async function searchSchedule() {
-    const area = document.getElementById('searchArea').value; // Get the search term
-    const scheduleDiv = document.getElementById('schedule');
-    scheduleDiv.innerHTML = ''; // Clear previous content
+async function loadPublicDashboard() {
+    const role = localStorage.getItem('role');
+    if (role !== 'user') {
+        alert('You do not have access to this dashboard');
+        window.location.href = 'login.html';
+    }
+    await loadSchedules(); // Load all garbage collection schedules initially
+}
 
+async function loadSchedules() {
     try {
-        const response = await fetch(`/view-schedule?area=${area}`, {
+        const response = await fetch('/view-schedule', {
             headers: {
-                'Authorization': localStorage.getItem('token') // Add the token from localStorage
+                'Authorization': localStorage.getItem('token')
             }
         });
-
         const data = await response.json();
-        if (!data.success || !data.schedules.length) {
-            scheduleDiv.innerHTML = `<p>No schedules available for "${area}".</p>`;
+        const scheduleDiv = document.getElementById('schedule');
+        scheduleDiv.innerHTML = ''; // Clear previous content
+
+        if (!data.schedules.length) {
+            scheduleDiv.innerHTML = `<p>No schedules available.</p>`;
             return;
         }
 
-        // Render the filtered schedule data
+        // Display all schedules
         data.schedules.forEach(schedule => {
-            scheduleDiv.innerHTML += `
-                <div class="schedule-item">
-                    <p><strong>${schedule.date} - ${schedule.time}</strong></p>
-                    <p>Area: ${schedule.area}</p>
-                </div>`;
+            scheduleDiv.innerHTML += `<div class="schedule-item"><p><strong>${schedule.date} - ${schedule.time}</strong></p><p>Area: ${schedule.area}</p></div>`;
         });
     } catch (error) {
         alert('Error loading schedule: ' + error);
     }
 }
+
+// Search schedule by area
+async function searchSchedule() {
+    const area = document.getElementById('searchArea').value.toLowerCase();
+    const scheduleDiv = document.getElementById('schedule');
+
+    // First, load all schedules to filter
+    await loadSchedules();
+
+    // Filter and display schedules
+    const allSchedules = document.querySelectorAll('.schedule-item');
+    allSchedules.forEach(scheduleItem => {
+        const areaText = scheduleItem.querySelector('p:last-child').textContent.toLowerCase();
+        if (!areaText.includes(area)) {
+            scheduleItem.style.display = 'none'; // Hide schedules not matching
+        } else {
+            scheduleItem.style.display = 'block'; // Show matching schedules
+        }
+    });
+}
+
 
 // Submit a concern for public users
 async function submitConcern(event) {
