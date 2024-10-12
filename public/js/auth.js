@@ -127,8 +127,15 @@ async function loadSchedules() {
         }
 
         // Display all schedules
+        //Upadated area
         data.schedules.forEach(schedule => {
-            scheduleDiv.innerHTML += `<div class="schedule-item"><p><strong>${schedule.date} - ${schedule.time}</strong></p><p>Area: ${schedule.area}</p></div>`;
+            scheduleDiv.innerHTML += `
+                <div class="schedule-item">
+                <p><strong>Area: ${schedule.area}</strong></p>
+                    <p><strong>${schedule.day} - ${schedule.time}</strong></p>
+                    <p>Employee Name: ${schedule.employeeName}</p>
+                    <p>${schedule.date}</p>
+                </div>`;
         });
     } catch (error) {
         alert('Error loading schedule: ' + error);
@@ -321,14 +328,15 @@ async function deleteConcern(concernId) {
 
 
 // Update garbage collection schedule for municipal employees
+//updated code
 async function updateSchedule(event) {
     event.preventDefault();
     const scheduleData = {
         employeeName: document.getElementById('employeeName').value,
-        area: document.getElementById('area').value,
-        scheduleDay: document.getElementById('scheduleDay').value,
-        scheduleDate: document.getElementById('scheduleDate').value,
-        scheduleTime: document.getElementById('scheduleTime').value
+    area: document.getElementById('area').value,
+    day: document.getElementById('scheduleDay').value,     // Changed key
+    date: document.getElementById('scheduleDate').value,   // Changed key
+    time: document.getElementById('scheduleTime').value
     };
 
     try {
