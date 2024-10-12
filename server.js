@@ -185,15 +185,22 @@ app.get('/view-concerns', authenticateToken, async (req, res) => {
 });
 
 // Route for Municipal Employees to Update Garbage Collection Schedule
+
 app.post('/update-schedule', authenticateToken, async (req, res) => {
     if (req.userRole !== 'municipal') {
         return res.status(403).json({ success: false, message: 'Access Denied: Municipal employees only' });
     }
-
-    const { employeeName, area, day, date, time } = req.body;
+ // updated area
+    const { employeeName, area, scheduleDay, scheduleDate, scheduleTime } = req.body;
 
     try {
-        const newSchedule = new Schedule({ employeeName, area, day, date, time });
+        const newSchedule = new Schedule({
+            employeeName,
+            area,
+            day: scheduleDay,        // Corrected mapping
+            date: scheduleDate,      // Corrected mapping
+            time: scheduleTime       // Corrected mapping
+        });
         await newSchedule.save();
         res.status(201).json({ success: true, message: 'Schedule updated successfully' });
     } catch (error) {
@@ -276,3 +283,6 @@ app.use((err, req, res, next) => {
     console.error(err.stack);
     res.status(500).json({ success: false, message: 'Internal Server Error' });
 });
+
+
+
