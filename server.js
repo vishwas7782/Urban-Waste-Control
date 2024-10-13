@@ -6,6 +6,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const multer = require('multer');
 const path = require('path');
+const nodemailer = require('nodemailer');
 
 // Initialize the app
 const app = express();
@@ -17,7 +18,7 @@ app.use(cors()); // Enable CORS for cross-origin requests
 app.use(express.static(path.join(__dirname, 'public'))); // Serve static files
 
 // JWT Secret Key
-const JWT_SECRET = 'your_jwt_secret_key_here';
+const JWT_SECRET = 's3cureR@ndomStr1ngTh@tI5VerySecret12345678!';
 
 // MongoDB Connection (Local)
 const connectDB = async () => {
@@ -43,6 +44,7 @@ const userSchema = new mongoose.Schema({
     email: { type: String, unique: true },
     password: String,
     role: String, // 'user' or 'municipal'
+    verified: { type: Boolean, default: false } // Email verification status
 });
 
 const concernSchema = new mongoose.Schema({
@@ -90,12 +92,26 @@ const authenticateToken = (req, res, next) => {
     if (!token) return res.status(401).json({ success: false, message: 'Access Denied. No token provided.' });
 
     jwt.verify(token, JWT_SECRET, (err, decoded) => {
-        if (err) return res.status(403).json({ success: false, message: 'Invalid token' });
+        if (err) return res.status(403).json({ success: false, message: 'Invalid token or expired' });
 
         req.userId = decoded.userId; // Attach the user ID to the request object
         req.userRole = decoded.role; // Attach the user role
         next(); // Move to the next middleware/route
     });
+};
+
+// Verification Mail Setup
+const transporter = nodemailer.createTransport({
+    service: 'Gmail',
+    auth: {
+        user: 'urbanwastecontrol@gmail.com', // Your email
+        pass: 'tzgs qidz vgrd lxac' // Your email password or app password
+    }
+});
+
+// Generate Verification Token
+const generateVerificationToken = (email) => {
+    return jwt.sign({ email }, JWT_SECRET, { expiresIn: '1h' });
 };
 
 // User Signup Route
@@ -112,17 +128,57 @@ app.post('/signup', async (req, res) => {
         const newUser = new User({ name, email, password: hashedPassword, role });
         await newUser.save();
 
-        // Generate JWT token after signup
-        const token = jwt.sign({ userId: newUser._id, role: newUser.role }, JWT_SECRET, { expiresIn: '1h' });
+        // Generate verification token
+        const token = generateVerificationToken(email);
 
-        // Send the token and role back to the frontend
-        res.status(201).json({ success: true, token, role: newUser.role, message: 'User created successfully' });
+        // Send verification email
+        const verificationLink = `http://localhost:3000/verify-email?token=${token}`;
+        const mailOptions = {
+            from: 'urbanwastecontrol@gmail.com',
+            to: email,
+            subject: 'Email Verification',
+            html: `<p>Please click the link to verify your email: <a href="${verificationLink}">Verify Email</a></p>`,
+        };
+
+        transporter.sendMail(mailOptions, (error, info) => {
+            if (error) {
+                console.log('Error sending email: ', error);
+                return res.status(500).json({ success: false, message: 'Error sending verification email' });
+            }
+            res.status(201).json({ success: true, message: 'Signup successful. Please check your email for verification.' });
+        });
     } catch (error) {
         res.status(500).json({ success: false, message: 'Error signing up', error });
     }
 });
 
-// User Login Route
+// Email Verification Route
+app.get('/verify-email', async (req, res) => {
+    const { token } = req.query;
+
+    try {
+        const decoded = jwt.verify(token, JWT_SECRET);
+
+        // Find the user by email
+        const user = await User.findOne({ email: decoded.email });
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+
+        if (user.verified) {
+            return res.status(400).json({ success: false, message: 'Email is already verified' });
+        }
+
+        user.verified = true;
+        await user.save();
+
+        res.status(200).json({ success: true, message: 'Email verified successfully' });
+    } catch (error) {
+        res.status(400).json({ success: false, message: 'Invalid or expired token' });
+    }
+});
+
+// Login Route
 app.post('/login', async (req, res) => {
     const { email, password } = req.body;
 
@@ -132,18 +188,26 @@ app.post('/login', async (req, res) => {
             return res.status(400).json({ success: false, message: 'User not found' });
         }
 
+        console.log('User verification status:', user.verified); // Log the verified status
+
+        // Check if the user is verified
+        if (!user.verified) {
+            return res.status(403).json({ success: false, message: 'Please verify your email before logging in' });
+        }
+
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
             return res.status(400).json({ success: false, message: 'Invalid credentials' });
         }
 
-        // Generate JWT token
         const token = jwt.sign({ userId: user._id, role: user.role }, JWT_SECRET, { expiresIn: '1h' });
         res.status(200).json({ success: true, token, role: user.role, message: 'Login successful' });
     } catch (error) {
         res.status(500).json({ success: false, message: 'Error logging in', error });
     }
 });
+
+
 
 // Route for Public Users to Raise a Concern
 app.post('/raise-concern', authenticateToken, async (req, res) => {
@@ -154,14 +218,14 @@ app.post('/raise-concern', authenticateToken, async (req, res) => {
     const { name, houseNumber, locality, mobileNum, issueType, additionalDetails } = req.body;
 
     try {
-        const newConcern = new Concern({ 
-            userId: req.userId, 
-            name, 
-            houseNumber, 
-            locality, 
-            mobileNum, 
-            issueType, 
-            additionalDetails 
+        const newConcern = new Concern({
+            userId: req.userId,
+            name,
+            houseNumber,
+            locality,
+            mobileNum,
+            issueType,
+            additionalDetails
         });
         await newConcern.save();
         res.status(201).json({ success: true, message: 'Concern raised successfully' });
@@ -185,22 +249,14 @@ app.get('/view-concerns', authenticateToken, async (req, res) => {
 });
 
 // Route for Municipal Employees to Update Garbage Collection Schedule
-
 app.post('/update-schedule', authenticateToken, async (req, res) => {
     if (req.userRole !== 'municipal') {
         return res.status(403).json({ success: false, message: 'Access Denied: Municipal employees only' });
     }
- // updated area
-    const { employeeName, area, scheduleDay, scheduleDate, scheduleTime } = req.body;
 
+    const { employeeName, area, scheduleDay, scheduleDate, scheduleTime } = req.body;
     try {
-        const newSchedule = new Schedule({
-            employeeName,
-            area,
-            day: scheduleDay,        // Corrected mapping
-            date: scheduleDate,      // Corrected mapping
-            time: scheduleTime       // Corrected mapping
-        });
+        const newSchedule = new Schedule({ employeeName, area, day: scheduleDay, date: scheduleDate, time: scheduleTime });
         await newSchedule.save();
         res.status(201).json({ success: true, message: 'Schedule updated successfully' });
     } catch (error) {
@@ -211,9 +267,8 @@ app.post('/update-schedule', authenticateToken, async (req, res) => {
 // Route for Public Users to Report Public Garbage (with Image)
 app.post('/report-public-garbage', authenticateToken, upload.single('image'), (req, res) => {
     const { location, locality, mobileNum, additionalDetails } = req.body;
-    const filePath = req.file.path; // Store file path
+    const filePath = req.file.path;
 
-    // Return a public URL for the uploaded image
     const publicUrl = `http://localhost:3000/${filePath}`;
 
     res.json({ success: true, message: 'Public garbage reported successfully', imageUrl: publicUrl });
@@ -222,22 +277,19 @@ app.post('/report-public-garbage', authenticateToken, upload.single('image'), (r
 // Route to Get the Garbage Collection Schedule with search functionality
 app.get('/view-schedule', authenticateToken, async (req, res) => {
     try {
-        const { area } = req.query; // Get the area from the query parameter if provided
+        const { area } = req.query;
         let query = {};
 
-        // If an area is provided, we search based on it
         if (area) {
-            query.area = { $regex: area, $options: 'i' }; // Case-insensitive search for area
+            query.area = { $regex: area, $options: 'i' };
         }
 
-        const schedules = await Schedule.find(query); // Fetch filtered schedules based on area
+        const schedules = await Schedule.find(query);
         res.json({ success: true, schedules });
     } catch (error) {
         res.status(500).json({ success: false, message: 'Error retrieving schedule', error });
     }
 });
-
-
 
 // Route to Mark a Concern as Solved
 app.patch('/mark-solved/:id', authenticateToken, async (req, res) => {
@@ -264,25 +316,20 @@ app.delete('/delete-concern/:id', authenticateToken, async (req, res) => {
     const { id } = req.params;
 
     try {
-        await Concern.findByIdAndDelete(id); // Deleting the concern by ID
+        await Concern.findByIdAndDelete(id);
         res.json({ success: true, message: 'Concern deleted successfully' });
     } catch (error) {
         res.status(500).json({ success: false, message: 'Error deleting concern', error });
     }
 });
 
-
-
-
 // Start the Server
 app.listen(3000, () => {
     console.log('Server running on http://localhost:3000');
 });
+
 // Error handling middleware
 app.use((err, req, res, next) => {
     console.error(err.stack);
     res.status(500).json({ success: false, message: 'Internal Server Error' });
 });
-
-
-
