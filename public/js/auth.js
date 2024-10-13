@@ -1,4 +1,4 @@
-// Handle Signup
+// Handle Signup with Email Verification
 document.getElementById('signupForm')?.addEventListener('submit', async function (event) {
     event.preventDefault(); // Prevent form from refreshing the page
 
@@ -15,7 +15,7 @@ document.getElementById('signupForm')?.addEventListener('submit', async function
     }
 
     try {
-        // Send POST request to signup API
+        // Send POST request to signup API and send email verification link
         const response = await fetch('/signup', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -24,16 +24,9 @@ document.getElementById('signupForm')?.addEventListener('submit', async function
 
         const data = await response.json();
         if (data.success) {
-            // Signup successful, store JWT token and role
-            localStorage.setItem('token', data.token);
-            localStorage.setItem('role', data.role); // Store user role
-
-            // Redirect to the correct dashboard based on role
-            if (data.role === 'municipal') {
-                window.location.href = 'municipal-dashboard.html'; // Redirect to municipal employee dashboard
-            } else {
-                window.location.href = 'public-dashboard.html'; // Redirect to public user dashboard
-            }
+            // Notify the user to check their email for the verification link
+            alert('Signup successful! Please check your email to verify your account.');
+            window.location.href = 'login.html'; // Redirect to login page
         } else {
             // Show error if signup failed
             alert('Signup failed: ' + data.message);
@@ -44,7 +37,7 @@ document.getElementById('signupForm')?.addEventListener('submit', async function
     }
 });
 
-// Handle Login
+// Handle Login (after email verification)
 document.getElementById('loginForm')?.addEventListener('submit', async function (event) {
     event.preventDefault(); // Prevent form from refreshing the page
 
@@ -81,14 +74,62 @@ document.getElementById('loginForm')?.addEventListener('submit', async function 
     }
 });
 
-// Check if user is logged in
+
+// Check if user is logged in and verified
 function checkLogin() {
     const token = localStorage.getItem('token');
     if (!token) {
         alert('You must log in to access the dashboard');
         window.location.href = 'login.html'; // Redirect to login page if not logged in
     }
+
+    const verified = localStorage.getItem('verified');
+    if (verified !== 'true') {
+        alert('You must verify your email to access the dashboard');
+        window.location.href = 'login.html'; // Redirect to login page if not verified
+    }
+
+    // Optionally, check role on dashboard load
+    const role = localStorage.getItem('role');
+    if (role !== 'municipal' && role !== 'user') {
+        alert('Invalid role. Please log in again.');
+        localStorage.clear();
+        window.location.href = 'login.html';
+    }
 }
+
+// Email Verification Handler
+async function verifyEmail(token) {
+    try {
+        const response = await fetch(`/verify-email?token=${token}`, { // Fix: Added token in query param
+            method: 'GET'
+        });
+
+        const data = await response.json();
+        if (data.success) {
+            alert('Email verified successfully! Please log in.');
+            localStorage.setItem('verified', 'true'); // Set verified status in localStorage
+            window.location.href = 'login.html'; // Redirect to login page
+        } else {
+            alert('Email verification failed: ' + data.message);
+        }
+    } catch (error) {
+        alert('Error: ' + error);
+    }
+}
+
+// Utility function to handle the verification when the user clicks the email link
+function handleEmailVerification() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
+
+    if (token) {
+        verifyEmail(token); // Call the function to verify email
+    }
+}
+
+// Call this function on the verification page (for example, email-verification.html)
+window.onload = handleEmailVerification;
 
 // Load Public Dashboard
 async function loadPublicDashboard() {
@@ -97,19 +138,41 @@ async function loadPublicDashboard() {
         alert('You do not have access to this dashboard');
         window.location.href = 'login.html';
     }
-    await loadSchedule(); // Load garbage collection schedule
+    await loadSchedules(); // Load garbage collection schedules
 }
 
-// Search for garbage collection schedule (public user functionality)
-async function loadPublicDashboard() {
-    const role = localStorage.getItem('role');
-    if (role !== 'user') {
-        alert('You do not have access to this dashboard');
-        window.location.href = 'login.html';
+// Update garbage collection schedule for municipal employees
+async function updateSchedule(event) {
+    event.preventDefault();
+    const employeeName = document.getElementById('employeeName').value;
+    const area = document.getElementById('area').value;
+    const scheduleDay = document.getElementById('scheduleDay').value;
+    const scheduleDate = document.getElementById('scheduleDate').value;
+    const scheduleTime = document.getElementById('scheduleTime').value;
+
+    try {
+        const response = await fetch('/update-schedule', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': localStorage.getItem('token') // Add the token from localStorage
+            },
+            body: JSON.stringify({ employeeName, area, scheduleDay, scheduleDate, scheduleTime })
+        });
+
+        const data = await response.json();
+        if (data.success) {
+            alert('Schedule updated successfully');
+            document.getElementById('updateScheduleForm').reset(); // Clear the form
+        } else {
+            alert('Error updating schedule: ' + data.message);
+        }
+    } catch (error) {
+        alert('Error: ' + error);
     }
-    await loadSchedules(); // Load all garbage collection schedules initially
 }
 
+// Load schedules for public dashboard
 async function loadSchedules() {
     try {
         const response = await fetch('/view-schedule', {
@@ -117,6 +180,7 @@ async function loadSchedules() {
                 'Authorization': localStorage.getItem('token')
             }
         });
+
         const data = await response.json();
         const scheduleDiv = document.getElementById('schedule');
         scheduleDiv.innerHTML = ''; // Clear previous content
@@ -127,7 +191,6 @@ async function loadSchedules() {
         }
 
         // Display all schedules
-        //Upadated area
         data.schedules.forEach(schedule => {
             scheduleDiv.innerHTML += `
                 <div class="schedule-item">
@@ -142,26 +205,21 @@ async function loadSchedules() {
     }
 }
 
-// Search schedule by area
+// Search schedules by area
 async function searchSchedule() {
     const area = document.getElementById('searchArea').value.toLowerCase();
-    const scheduleDiv = document.getElementById('schedule');
-
-    // First, load all schedules to filter
-    await loadSchedules();
-
-    // Filter and display schedules
     const allSchedules = document.querySelectorAll('.schedule-item');
+
+    // Filter and display schedules based on the search input
     allSchedules.forEach(scheduleItem => {
-        const areaText = scheduleItem.querySelector('p:last-child').textContent.toLowerCase();
+        const areaText = scheduleItem.querySelector('p:first-child').textContent.toLowerCase();
         if (!areaText.includes(area)) {
-            scheduleItem.style.display = 'none'; // Hide schedules not matching
+            scheduleItem.style.display = 'none'; // Hide non-matching schedules
         } else {
             scheduleItem.style.display = 'block'; // Show matching schedules
         }
     });
 }
-
 
 // Submit a concern for public users
 async function submitConcern(event) {
@@ -243,7 +301,6 @@ async function loadMunicipalDashboard() {
 }
 
 // Load user concerns for municipal employees
-// Load concerns for municipal employees
 async function loadUserConcerns() {
     try {
         const response = await fetch('/view-concerns', {
@@ -320,41 +377,6 @@ async function deleteConcern(concernId) {
             loadUserConcerns(); // Refresh the concerns list
         } else {
             alert('Error deleting concern: ' + data.message);
-        }
-    } catch (error) {
-        alert('Error: ' + error);
-    }
-}
-
-
-// Update garbage collection schedule for municipal employees
-//updated code
-async function updateSchedule(event) {
-    event.preventDefault();
-    const scheduleData = {
-        employeeName: document.getElementById('employeeName').value,
-    area: document.getElementById('area').value,
-    day: document.getElementById('scheduleDay').value,     // Changed key
-    date: document.getElementById('scheduleDate').value,   // Changed key
-    time: document.getElementById('scheduleTime').value
-    };
-
-    try {
-        const response = await fetch('/update-schedule', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': localStorage.getItem('token') // Add the token from localStorage
-            },
-            body: JSON.stringify(scheduleData)
-        });
-
-        const data = await response.json();
-        if (data.success) {
-            alert('Schedule updated successfully');
-            document.getElementById('updateScheduleForm').reset(); // Clear the form
-        } else {
-            alert('Error updating schedule: ' + data.message);
         }
     } catch (error) {
         alert('Error: ' + error);
