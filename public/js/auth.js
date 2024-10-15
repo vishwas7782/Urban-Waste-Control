@@ -54,14 +54,19 @@ document.getElementById('loginForm')?.addEventListener('submit', async function 
 
         const data = await response.json();
         if (data.success) {
+
+
             // Login successful, store JWT token and role
             localStorage.setItem('token', data.token);
             localStorage.setItem('role', data.role); // Store user role
+            localStorage.setItem('verified', 'true'); // Set verified status for logged in users
 
             // Redirect to the correct dashboard based on role
             if (data.role === 'municipal') {
+
                 window.location.href = 'municipal-dashboard.html'; // Redirect to municipal employee dashboard
             } else {
+
                 window.location.href = 'public-dashboard.html'; // Redirect to public user dashboard
             }
         } else {
@@ -73,6 +78,49 @@ document.getElementById('loginForm')?.addEventListener('submit', async function 
         alert('Error: ' + error);
     }
 });
+// document.addEventListener('DOMContentLoaded', () => {
+//     // Attach the login event listener after the DOM is loaded
+//     document.getElementById('loginForm')?.addEventListener('submit', async function (event) {
+//         event.preventDefault(); // Prevent form from refreshing the page
+
+//         const email = document.getElementById('email').value;
+//         const password = document.getElementById('password').value;
+
+//         try {
+//             // Send POST request to login API
+//             const response = await fetch('/login', {
+//                 method: 'POST',
+//                 headers: { 'Content-Type': 'application/json' },
+//                 body: JSON.stringify({ email, password })
+//             });
+
+//             const data = await response.json();
+//             if (data.success) {
+//                 // Log success and role
+//                 console.log('Login successful', data.role);
+
+//                 // Store JWT token and role
+//                 localStorage.setItem('token', data.token);
+//                 localStorage.setItem('role', data.role); // Store user role
+//                 localStorage.setItem('verified', 'true'); // Set verified status for logged in users
+
+//                 // Redirect to the correct dashboard based on role
+//                 if (data.role === 'municipal') {
+//                     console.log('Redirecting to municipal dashboard');
+//                     window.location.href = 'municipal-dashboard.html'; // Redirect to municipal employee dashboard
+//                 } else {
+//                     console.log('Redirecting to public dashboard');
+//                     window.location.href = 'public-dashboard.html'; // Redirect to public user dashboard
+//                 }
+//             } else {
+//                 alert('Login failed: ' + data.message);
+//             }
+//         } catch (error) {
+//             alert('Error: ' + error);
+//         }
+//     });
+// });
+
 
 
 // Check if user is logged in and verified
@@ -97,11 +145,63 @@ function checkLogin() {
         window.location.href = 'login.html';
     }
 }
+// function checkLogin() {
+//     console.log('Checking login status...'); // Add this line
+//     const token = localStorage.getItem('token');
+//     if (!token) {
+//         alert('You must log in to access the dashboard');
+//         window.location.href = 'login.html'; // Redirect to login page if not logged in
+//         return; // Exit the function early
+//     }
+
+//     const verified = localStorage.getItem('verified');
+//     if (verified !== 'true') {
+//         alert('You must verify your email to access the dashboard');
+//         window.location.href = 'login.html'; // Redirect to login page if not verified
+//         return; // Exit the function early
+//     }
+
+//     // Optionally, check role on dashboard load
+//     const role = localStorage.getItem('role');
+//     if (role !== 'municipal' && role !== 'user') {
+//         alert('Invalid role. Please log in again.');
+//         localStorage.clear();
+//         window.location.href = 'login.html';
+//     }
+// }
+// Example of invoking loadMunicipalDashboard after checking login
+// function checkLogin() {
+//     const token = localStorage.getItem('token');
+//     if (!token) {
+//         alert('You must log in to access the dashboard');
+//         window.location.href = 'login.html'; // Redirect to login page if not logged in
+//     }
+
+//     const verified = localStorage.getItem('verified');
+//     if (verified !== 'true') {
+//         alert('You must verify your email to access the dashboard');
+//         window.location.href = 'login.html'; // Redirect to login page if not verified
+//     }
+
+//     const role = localStorage.getItem('role');
+//     if (role === 'municipal') {
+//         loadMunicipalDashboard(); // Call the function for municipal users
+//     } else if (role === 'user') {
+//         loadPublicDashboard(); // Call the function for public users
+//     } else {
+//         alert('Invalid role. Please log in again.');
+//         localStorage.clear();
+//         window.location.href = 'login.html';
+//     }
+// }
+
+
+
 
 // Email Verification Handler
 async function verifyEmail(token) {
     try {
-        const response = await fetch(`/verify-email?token=${token}`, { // Fix: Added token in query param
+        const response = await fetch(`/verify-email?token=${token}`, {
             method: 'GET'
         });
 
@@ -131,15 +231,30 @@ function handleEmailVerification() {
 // Call this function on the verification page (for example, email-verification.html)
 window.onload = handleEmailVerification;
 
-// Load Public Dashboard
-async function loadPublicDashboard() {
-    const role = localStorage.getItem('role');
-    if (role !== 'user') {
-        alert('You do not have access to this dashboard');
-        window.location.href = 'login.html';
-    }
-    await loadSchedules(); // Load garbage collection schedules
+// Logout function
+function logout() {
+    // Clear user data from localStorage
+    localStorage.removeItem('token');
+    localStorage.removeItem('role');
+    localStorage.removeItem('verified'); // If you are also storing verified status
+
+    // Redirect to login page
+    window.location.href = 'login.html';
 }
+// Prevent back navigation to cached page after logout
+window.addEventListener('pageshow', function(event) {
+    if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
+        // If the page was restored from the cache, force a reload
+        window.location.reload();
+    }
+});
+
+
+// Attach the logout function to the logout link
+document.querySelectorAll('a[href="logout"]').forEach(link => {
+    link.addEventListener('click', logout);
+});
+
 
 // Update garbage collection schedule for municipal employees
 async function updateSchedule(event) {
@@ -172,12 +287,22 @@ async function updateSchedule(event) {
     }
 }
 
+// Load Public Dashboard
+async function loadPublicDashboard() {
+
+    const role = localStorage.getItem('role');
+    if (role !== 'user') {
+        alert('You do not have access to this dashboard');
+        window.location.href = 'login.html';
+    }
+    await loadSchedules(); // Load garbage collection schedules
+}
 // Load schedules for public dashboard
 async function loadSchedules() {
     try {
         const response = await fetch('/view-schedule', {
             headers: {
-                'Authorization': localStorage.getItem('token')
+                'Authorization': localStorage.getItem('token') // Ensure token is included
             }
         });
 
@@ -186,7 +311,7 @@ async function loadSchedules() {
         scheduleDiv.innerHTML = ''; // Clear previous content
 
         if (!data.schedules.length) {
-            scheduleDiv.innerHTML = `<p>No schedules available.</p>`;
+            scheduleDiv.innerHTML = `<p>No schedules available.</p>`; // Handle empty schedules
             return;
         }
 
@@ -194,32 +319,39 @@ async function loadSchedules() {
         data.schedules.forEach(schedule => {
             scheduleDiv.innerHTML += `
                 <div class="schedule-item">
-                <p><strong>Area: ${schedule.area}</strong></p>
-                    <p><strong>${schedule.day} - ${schedule.time}</strong></p>
-                    <p>Employee Name: ${schedule.employeeName}</p>
-                    <p>${schedule.date}</p>
+                    <p><strong>Area:</strong> ${schedule.area}</p>
+                    <p><strong>Day:</strong> ${schedule.day} - <strong>Time:</strong> ${schedule.time}</p>
+                    <p><strong>Employee Name:</strong> ${schedule.employeeName}</p>
+                    <p><strong>Date:</strong> ${schedule.date}</p>
                 </div>`;
         });
     } catch (error) {
         alert('Error loading schedule: ' + error);
+        console.error('Error loading schedules:', error);
     }
 }
 
-// Search schedules by area
+
+// Search schedule by area
 async function searchSchedule() {
     const area = document.getElementById('searchArea').value.toLowerCase();
-    const allSchedules = document.querySelectorAll('.schedule-item');
+    const scheduleDiv = document.getElementById('schedule');
 
-    // Filter and display schedules based on the search input
+    // First, load all schedules to filter
+    await loadSchedules();
+
+    // Filter and display schedules
+    const allSchedules = document.querySelectorAll('.schedule-item');
     allSchedules.forEach(scheduleItem => {
-        const areaText = scheduleItem.querySelector('p:first-child').textContent.toLowerCase();
+        const areaText = scheduleItem.querySelector('p:last-child').textContent.toLowerCase();
         if (!areaText.includes(area)) {
-            scheduleItem.style.display = 'none'; // Hide non-matching schedules
+            scheduleItem.style.display = 'none'; // Hide schedules not matching
         } else {
             scheduleItem.style.display = 'block'; // Show matching schedules
         }
     });
 }
+
 
 // Submit a concern for public users
 async function submitConcern(event) {
@@ -292,6 +424,7 @@ async function reportGarbage(event) {
 
 // Load Municipal Dashboard
 async function loadMunicipalDashboard() {
+
     const role = localStorage.getItem('role');
     if (role !== 'municipal') {
         alert('You do not have access to this dashboard');
@@ -301,40 +434,38 @@ async function loadMunicipalDashboard() {
 }
 
 // Load user concerns for municipal employees
+// Load user concerns for municipal employees
 async function loadUserConcerns() {
     try {
         const response = await fetch('/view-concerns', {
             headers: {
-                'Authorization': localStorage.getItem('token') // Add the token from localStorage
+                'Authorization': localStorage.getItem('token') // Ensure token is included
             }
         });
+
         const data = await response.json();
         const concernsDiv = document.getElementById('userConcerns');
         concernsDiv.innerHTML = ''; // Clear previous content
-        
+
+        if (!data.concerns.length) {
+            concernsDiv.innerHTML = `<p>No concerns available.</p>`; // Handle empty concerns
+            return;
+        }
+
         data.concerns.forEach(concern => {
-            // Create concern HTML
-            let concernHTML = `<p>
-                <strong>Issue Type:</strong> ${concern.issueType || 'N/A'}<br>
-                <strong>Locality:</strong> ${concern.locality || 'N/A'}<br>
-                <strong>Details:</strong> ${concern.additionalDetails || 'No additional details'}<br>
-                <strong>Status:</strong> ${concern.status} `;
-
-            // Add "Mark Solved" button if not yet resolved
-            if (concern.status === 'pending') {
-                concernHTML += `<button onclick="markSolved('${concern._id}')">Mark Solved</button>`;
-            }
-
-            // Add "Delete" button if the concern is resolved
-            if (concern.status === 'resolved') {
-                concernHTML += `<button onclick="deleteConcern('${concern._id}')">Delete</button>`;
-            }
-
-            concernHTML += `</p>`;
-            concernsDiv.innerHTML += concernHTML;
+            concernsDiv.innerHTML += `
+                <div class="concern-item">
+                    <p><strong>Issue Type:</strong> ${concern.issueType || 'N/A'}</p>
+                    <p><strong>Locality:</strong> ${concern.locality || 'N/A'}</p>
+                    <p><strong>Details:</strong> ${concern.additionalDetails || 'No additional details'}</p>
+                    <p><strong>Status:</strong> ${concern.status}</p>
+                    ${concern.status === 'pending' ? `<button onclick="markSolved('${concern._id}')">Mark Solved</button>` : ''}
+                    ${concern.status === 'resolved' ? `<button onclick="deleteConcern('${concern._id}')">Delete</button>` : ''}
+                </div>`;
         });
     } catch (error) {
         alert('Error loading concerns: ' + error);
+        console.error('Error loading concerns:', error);
     }
 }
 
