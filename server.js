@@ -18,12 +18,12 @@ app.use(cors()); // Enable CORS for cross-origin requests
 app.use(express.static(path.join(__dirname, 'public'))); // Serve static files
 
 // JWT Secret Key
-const JWT_SECRET = 's3cureR@ndomStr1ngTh@tI5VerySecret12345678!';
+const JWT_SECRET = 'your_jwt_secret_key_here';
 
 // MongoDB Connection (Local)
 const connectDB = async () => {
     try {
-        const uri = 'mongodb://localhost:27017/Urban-db'; // Local MongoDB connection string
+        const uri = 'mongodb://localhost:27017/UrbanWaste-db'; // Local MongoDB connection string
         await mongoose.connect(uri, {
             useNewUrlParser: true,
             useUnifiedTopology: true,
@@ -132,7 +132,7 @@ app.post('/signup', async (req, res) => {
         const token = generateVerificationToken(email);
 
         // Send verification email
-        const verificationLink = `http://localhost:3000/verify-email?token=${token}`;
+        const verificationLink = `http://localhost:3000/email-verification.html?token=${token}`;;
         const mailOptions = {
             from: 'urbanwastecontrol@gmail.com',
             to: email,
@@ -207,6 +207,20 @@ app.post('/login', async (req, res) => {
     }
 });
 
+// Logout Route
+app.post('/logout', (req, res) => {
+    // Here, you can implement any server-side logic if needed.
+    // Since JWTs are stateless, there's usually nothing to do here.
+    res.json({ success: true, message: 'Logged out successfully' });
+});
+
+// Middleware to prevent caching of authenticated pages
+// app.use((req, res, next) => {
+//     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+//     res.setHeader('Pragma', 'no-cache');
+//     res.setHeader('Expires', '0');
+//     next();
+// });
 
 
 // Route for Public Users to Raise a Concern
@@ -218,15 +232,16 @@ app.post('/raise-concern', authenticateToken, async (req, res) => {
     const { name, houseNumber, locality, mobileNum, issueType, additionalDetails } = req.body;
 
     try {
-        const newConcern = new Concern({
-            userId: req.userId,
-            name,
-            houseNumber,
-            locality,
-            mobileNum,
-            issueType,
-            additionalDetails
+        const newConcern = new Concern({ 
+            userId: req.userId, 
+            name, 
+            houseNumber, 
+            locality, 
+            mobileNum, 
+            issueType, 
+            additionalDetails 
         });
+        
         await newConcern.save();
         res.status(201).json({ success: true, message: 'Concern raised successfully' });
     } catch (error) {
@@ -241,12 +256,15 @@ app.get('/view-concerns', authenticateToken, async (req, res) => {
     }
 
     try {
-        const concerns = await Concern.find();
-        res.json({ concerns });
+        const concerns = await Concern.find(); // Fetch concerns
+        console.log('Concerns:', concerns); // Add this line to log concerns in server console
+        
+        res.json({ success: true, concerns });
     } catch (error) {
         res.status(500).json({ success: false, message: 'Error retrieving concerns', error });
     }
 });
+
 
 // Route for Municipal Employees to Update Garbage Collection Schedule
 app.post('/update-schedule', authenticateToken, async (req, res) => {
@@ -281,10 +299,12 @@ app.get('/view-schedule', authenticateToken, async (req, res) => {
         let query = {};
 
         if (area) {
-            query.area = { $regex: area, $options: 'i' };
+            query.area = { $regex: area, $options: 'i' }; // Regex search for area
         }
 
-        const schedules = await Schedule.find(query);
+        const schedules = await Schedule.find(query); // Fetch schedules
+        console.log('Schedules:', schedules); // Add this line to log the schedules in server console
+        
         res.json({ success: true, schedules });
     } catch (error) {
         res.status(500).json({ success: false, message: 'Error retrieving schedule', error });
@@ -322,6 +342,8 @@ app.delete('/delete-concern/:id', authenticateToken, async (req, res) => {
         res.status(500).json({ success: false, message: 'Error deleting concern', error });
     }
 });
+
+
 
 // Start the Server
 app.listen(3000, () => {
