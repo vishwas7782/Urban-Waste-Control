@@ -338,7 +338,7 @@ form button:hover {
 }
 
 .login-section form button, .signup-section form button {
-    width: 100%;
+/*     width: 100%; */
     padding: 10px;
     background-color: #0056b3;
     color: #fff;
