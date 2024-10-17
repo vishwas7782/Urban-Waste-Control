@@ -7,13 +7,12 @@
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-    <!-- Navigation Bar -->
     <header>
         <nav>
             <div class="logo">
                 <a href="index.html">
                     <img src="/Images/logo2NoBg.png" alt="Urban Waste Control Logo">
-                    <span>Urban Waste Control</span>
+                    <span class="logotext">Urban Waste Control</span>
                 </a>
             </div>
             <ul>
@@ -29,29 +28,22 @@
         </nav>
     </header>
 
-    <!-- Schedule Section -->
     <section id="schedule" class="schedule-section">
         <div class="container">
             <h1>Garbage Collection Schedule</h1>
-            <form>
+            <form id="scheduleForm" onsubmit="fetchSchedule(event)">
                 <label for="location">Enter Your Location:</label>
                 <input type="text" id="location" name="location" required>
                 <button type="submit" class="btn">View Schedule</button>
             </form>
 
-            <!-- Schedule Results (placeholder content) -->
-            <div class="schedule-results">
-                <h2>Schedule for [Your Location]</h2>
-                <ul>
-                    <li>Monday - 8:00 AM</li>
-                    <li>Wednesday - 8:00 AM</li>
-                    <li>Friday - 8:00 AM</li>
-                </ul>
+            <div id="schedule-results" class="schedule-results" style="display: none;">
+                <h2>Schedule for <span id="location-display"></span></h2>
+                <ul id="schedule-list"></ul>
             </div>
         </div>
     </section>
 
-    <!-- Footer -->
     <footer>
         <div class="container">
             <p>Urban Waste Control System | © 2024 All rights reserved</p>
@@ -62,5 +54,40 @@
             </ul>
         </div>
     </footer>
+
+    <script>
+        async function fetchSchedule(event) {
+            event.preventDefault(); // Prevent form submission
+            const location = document.getElementById('location').value.trim();
+            const scheduleList = document.getElementById('schedule-list');
+            const locationDisplay = document.getElementById('location-display');
+            const scheduleResults = document.getElementById('schedule-results');
+
+            try {
+                const response = await fetch(`/public-schedule?area=${encodeURIComponent(location)}`); // No auth required
+
+                const data = await response.json();
+
+                // Clear previous schedule results
+                scheduleList.innerHTML = '';
+
+                if (data.success && data.schedules.length > 0) {
+                    data.schedules.forEach(schedule => {
+                        scheduleList.innerHTML += `
+                            <li>${schedule.day} - ${schedule.time}</li>
+                        `;
+                    });
+                    locationDisplay.textContent = location; // Set location display text
+                    scheduleResults.style.display = 'block'; // Show results section
+                } else {
+                    scheduleResults.style.display = 'none'; // Hide if no schedules found
+                    alert('No schedules available for the specified location.');
+                }
+            } catch (error) {
+                console.error('Error fetching schedule:', error);
+                alert('An error occurred while fetching the schedule.');
+            }
+        }
+    </script>
 </body>
 </html>

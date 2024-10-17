@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Email Verification - Urban Waste Control</title>
+    <title>General Public Reports - Urban Waste Control</title>
     <link rel="stylesheet" href="css/styles.css">
+    <script src="js/auth.js"></script>
 </head>
-<body>
+<body onload="checkLogin(); loadPublicGarbageReports();">
     <header>
         <nav>
             <div class="logo">
@@ -17,17 +18,15 @@
             </div>
             <ul>
                 <li><a href="index.html">Home</a></li>
-                <li><a href="about.html">About Us</a></li>
-                <li><a href="services.html">Services</a></li>
-                <li><a href="contact.html">Contact</a></li>
+                <li><a href="#" onclick="logout()">Logout</a></li>
             </ul>
         </nav>
     </header>
 
-    <section id="verification">
+    <section id="general-public-reports" class="dashboard-section">
         <div class="container">
-            <h1>Email Verification</h1>
-            <p>Verifying your email, please wait...</p>
+            <h1>General Public Reports</h1>
+            <div id="generalPublicReports" class="general-public-reports-list"></div>
         </div>
     </section>
 
@@ -36,7 +35,5 @@
             <p>Urban Waste Control System | © 2024 All rights reserved</p>
         </div>
     </footer>
-
-    <script src="js/auth.js"></script> <!-- Make sure this path is correct -->
 </body>
 </html>
