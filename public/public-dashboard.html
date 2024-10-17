@@ -1,19 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Public Dashboard - Urban Waste Control</title>
     <link rel="stylesheet" href="css/styles.css">
-      <script src="js/auth.js"></script>
+    <script src="js/auth.js"></script>
 </head>
-<body onload="checkLogin(); loadPublicDashboard();">
+
+<body onload="console.log('Body loaded');checkLogin(); loadPublicDashboard();">
     <header>
         <nav>
             <div class="logo">
                 <a href="index.html">
                     <img src="images/logo2NoBg.png" alt="Urban Waste Control Logo">
-                    <span>Urban Waste Control</span>
+                    <span class="logotext">Urban Waste Control</span>
                 </a>
             </div>
             <ul>
@@ -27,63 +29,106 @@
         <div class="container">
             <h1>Welcome to Your Public Dashboard</h1>
 
-            <h2>Dashboard Options</h2>
+            <!-- View Schedule and Raised Concerns Section (Top) -->
             <div class="dashboard-options">
                 <div class="option">
-                    <h3>View Garbage Collection Schedule</h3>
-                    <input type="text" id="searchArea" placeholder="Search by area" oninput="searchSchedule()" class="search-input">
-                    <div id="schedule" class="schedule-list"></div>
+                    <h3>View Schedule</h3>
+                    <div id="schedule-preview" class="preview-box">
+                        <ul id="schedule-list"></ul>
+                        <!-- Dynamic content from JS will be inserted here -->
+                        <p>Loading schedules...</p>
+                    </div>
+                    <p>Click the button below to view the garbage collection schedule.</p>
+                    <a href="view-schedule.html" class="button">View Schedule</a>
                 </div>
 
                 <div class="option">
-                    <h3>Raise a Concern</h3>
-                    <form id="raiseConcernForm" onsubmit="submitConcern(event)">
-                        <label for="name">Name:</label>
-                        <input type="text" id="name" name="name" required>
-                        
-                        <label for="houseNumber">House Number:</label>
-                        <input type="text" id="houseNumber" name="houseNumber" required>
-                        
-                        <label for="locality">Locality:</label>
-                        <input type="text" id="locality" name="locality" required>
-                        
-                        <label for="mobileNum">Mobile Number:</label>
-                        <input type="tel" id="mobileNum" name="mobileNum" required>
+                    <h3>View Raised Concerns</h3>
+                    <div id="user-own-concern-preview" class="preview-box">
+                        <ul id="user-own-concerns-list"></ul>
+                        <!-- Dynamic content from JS will be inserted here -->
+                        <p>Loading schedules...</p>
+                    </div>
+                    <p>Click the button below to view your raised concerns.</p>
+                    <a href="view-raised-concerns.html" class="button">View Concerns</a>
+                </div>
+            </div>
 
-                        <label for="issueType">Issue Type:</label>
-                        <select id="issueType" name="issueType" required>
-                            <option value="Missed Garbage Collection">Missed Garbage Collection</option>
-                            <option value="Garbage Collection Vehicle Did Not Come">Garbage Collection Vehicle Did Not Come</option>
-                            <option value="Extra Garbage">Extra Garbage</option>
-                        </select>
+            <!-- Forms Section (Two Forms in One Line) -->
+            <div class="dashboard-forms-row">
+                <!-- Raise a Concern Form -->
+                <div class="form-container">
+                    <div class="option">
+                        <div class="option-content">
+                            <h3>Raise a Concern</h3>
+                            <form id="raiseConcernForm" onsubmit="submitConcern(event)">
+                                <label for="name">Name:</label>
+                                <input type="text" id="name" name="name" placeholder="Enter your full name" required>
 
-                        <label for="additionalDetails">Additional Details:</label>
-                        <textarea id="additionalDetails" name="additionalDetails"></textarea>
+                                <label for="houseNumber">House Number:</label>
+                                <input type="text" id="houseNumber" name="houseNumber"
+                                    placeholder="Enter your house number" required>
 
-                        <button type="submit">Submit Concern</button>
-                    </form>
+                                <label for="locality">Locality:</label>
+                                <input type="text" id="locality" name="locality" placeholder="Enter your locality"
+                                    required>
+
+                                <label for="mobileNum">Mobile Number:</label>
+                                <input type="tel" id="mobileNum" name="mobileNum" placeholder="Enter your mobile number"
+                                    required>
+
+                                <label for="issueType">Issue Type:</label>
+                                <select id="issueType" name="issueType" required>
+                                    <option value="Missed Garbage Collection">Missed Garbage Collection</option>
+                                    <option value="Garbage Collection Vehicle Did Not Come">Garbage Collection Vehicle
+                                        Did Not Come</option>
+                                    <option value="Extra Garbage">Extra Garbage</option>
+                                </select>
+
+                                <label for="additionalDetails">Additional Details:</label>
+                                <textarea id="additionalDetails" name="additionalDetails"
+                                    placeholder="Provide any additional information here"></textarea>
+
+                                <button type="submit">Submit Concern</button>
+                            </form>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="option">
-                    <h3>Report Garbage at Public Place</h3>
-                    <form id="publicGarbageForm" onsubmit="reportGarbage(event)">
-                        <label for="location">Location:</label>
-                        <input type="text" id="location" name="location" required>
+                <!-- Report Garbage at Public Place Form -->
+                <div class="form-container">
+                    <div class="option">
+                        <div class="option-content">
+                            <h3>Report Garbage at Public Place</h3>
+                            <form id="publicGarbageForm" enctype="multipart/form-data" onsubmit="reportGarbage(event)">
+                                <label for="reportName">Name:</label>
+                                <input type="text" id="reportName" name="reportName" placeholder="Enter your full name"
+                                    required>
 
-                        <label for="locationLocality">Locality:</label>
-                        <input type="text" id="locationLocality" name="locationLocality" required>
+                                <label for="reportMobileNum">Mobile Number:</label>
+                                <input type="tel" id="reportMobileNum" name="reportMobileNum"
+                                    placeholder="Enter your mobile number" required>
 
-                        <label for="publicMobileNum">Mobile Number:</label>
-                        <input type="tel" id="publicMobileNum" name="publicMobileNum" required>
+                                <label for="reportLocation">Location:</label>
+                                <input type="text" id="reportLocation" name="reportLocation"
+                                    placeholder="Specify the location" required>
 
-                        <label for="publicAdditionalDetails">Additional Details:</label>
-                        <textarea id="publicAdditionalDetails" name="publicAdditionalDetails"></textarea>
+                                <label for="reportLandmark">Landmark:</label>
+                                <input type="text" id="reportLandmark" name="reportLandmark"
+                                    placeholder="Enter a nearby landmark" required>
 
-                        <label for="garbageImage">Upload Image:</label>
-                        <input type="file" id="garbageImage" name="garbageImage" accept="image/*" required>
-                        
-                        <button type="submit">Report Garbage</button>
-                    </form>
+                                <label for="reportAdditionalDetails">Additional Details:</label>
+                                <textarea id="reportAdditionalDetails" name="additionalDetails"
+                                    placeholder="Provide any additional information here"></textarea>
+
+                                <label for="garbageImage">Upload Image:</label>
+                                <input type="file" id="garbageImage" name="garbageImage" accept="image/*" required>
+
+
+                                <button type="submit">Report Garbage</button>
+                            </form>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -94,7 +139,6 @@
             <p>Urban Waste Control System | © 2024 All rights reserved</p>
         </div>
     </footer>
-
- 
 </body>
+
 </html>

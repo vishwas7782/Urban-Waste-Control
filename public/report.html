@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Report Issue - Urban Waste Control</title>
     <link rel="stylesheet" href="css/styles.css">
 </head>
+
 <body>
     <!-- Navigation Bar -->
     <header>
@@ -13,7 +15,7 @@
             <div class="logo">
                 <a href="index.html">
                     <img src="/Images/logo2NoBg.png" alt="Urban Waste Control Logo">
-                    <span>Urban Waste Control</span>
+                    <span class="logotext">Urban Waste Control</span>
                 </a>
             </div>
             <ul>
@@ -31,26 +33,36 @@
 
     <!-- Report Issue Form -->
     <section id="report" class="report-section">
-        <div class="container">
-            <h1>Report a Garbage Collection Issue</h1>
-            <form>
-                <label for="name">Name:</label>
-                <input type="text" id="name" name="name" required>
+        <div class="form-container">
+            <div class="container">
+                <h1>Report Garbage at Public Place</h1>
+                <form id="generalPublicGarbageForm" enctype="multipart/form-data" onsubmit="submitPublicGarbageReport(event)">
+                    <label for="publicReportName">Name:</label>
+                    <input type="text" id="publicReportName" name="publicReportName" placeholder="Enter your full name" required>
 
-                <label for="email">Email:</label>
-                <input type="email" id="email" name="email" required>
+                    <label for="publicReportMobileNum">Mobile Number:</label>
+                    <input type="tel" id="publicReportMobileNum" name="publicReportMobileNum" placeholder="Enter your mobile number"
+                        required>
 
-                <label for="location">Location:</label>
-                <input type="text" id="location" name="location" required>
+                    <label for="publicReportLocation">Location:</label>
+                    <input type="text" id="publicReportLocation" name="publicReportLocation" placeholder="Specify the location"
+                        required>
 
-                <label for="description">Issue Description:</label>
-                <textarea id="description" name="description" rows="4" required></textarea>
+                    <label for="publicReportLandmark">Landmark:</label>
+                    <input type="text" id="publicReportLandmark" name="publicReportLandmark" placeholder="Enter a nearby landmark"
+                        required>
 
-                <label for="image">Upload Image (optional):</label>
-                <input type="file" id="image" name="image">
+                    <label for="publicReportAdditionalDetails">Additional Details:</label>
+                    <textarea id="publicReportAdditionalDetails" name="publicReportAdditionalDetails"
+                        placeholder="Provide any additional information here"></textarea>
 
-                <button type="submit" class="btn">Submit Issue</button>
-            </form>
+                    <label for="publicGarbageImage">Upload Image:</label>
+                    <input type="file" id="publicGarbageImage" name="publicGarbageImage" accept="image/*" required>
+
+
+                    <button type="submit"class="btn">Report Garbage</button>
+                </form>
+            </div>
         </div>
     </section>
 
@@ -65,6 +77,7 @@
             </ul>
         </div>
     </footer>
-    <script src="report.js"></script>
+    <script src="js/auth.js"></script>
 </body>
+
 </html>

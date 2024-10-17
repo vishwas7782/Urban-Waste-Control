@@ -1,19 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Municipal Employee Dashboard - Urban Waste Control</title>
     <link rel="stylesheet" href="css/styles.css">
-      <script src="js/auth.js"></script>
+    <script src="js/auth.js"></script>
 </head>
+
 <body onload="checkLogin(); loadMunicipalDashboard();">
     <header>
         <nav>
             <div class="logo">
                 <a href="index.html">
                     <img src="images/logo2NoBg.png" alt="Urban Waste Control Logo">
-                    <span>Urban Waste Control</span>
+                    <span class="logotext">Urban Waste Control</span>
                 </a>
             </div>
             <ul>
@@ -30,31 +32,73 @@
             <h2>Dashboard Options</h2>
             <div class="dashboard-options">
                 <div class="option">
-                    <h3>View Concerns Raised by Users</h3>
-                    <div id="userConcerns" class="concerns-list"></div>
+                    <div class="option-content">
+                        <h3>View Concerns</h3>
+                        <div id="concern-preview" class="preview-box">
+                            <ul id="concern-list"></ul>
+                            <!-- Dynamic content from JS will be inserted here -->
+                            <p>Loading concerns...</p>
+                        </div>
+                        <p>See user-reported concerns.</p>
+                    </div>
+                    <a href="view-concerns.html" class="button">See Concerns</a>
                 </div>
-
                 <div class="option">
-                    <h3>Update Garbage Collection Schedule</h3>
-                    <form id="updateScheduleForm" onsubmit="updateSchedule(event)">
-                        <label for="employeeName">Employee Name:</label>
-                        <input type="text" id="employeeName" name="employeeName" required>
-
-                        <label for="area">Area:</label>
-                        <input type="text" id="area" name="area" required>
-
-                        <label for="scheduleDay">Day:</label>
-                        <input type="text" id="scheduleDay" name="scheduleDay" required>
-
-                        <label for="scheduleDate">Date:</label>
-                        <input type="date" id="scheduleDate" name="scheduleDate" required>
-
-                        <label for="scheduleTime">Time:</label>
-                        <input type="time" id="scheduleTime" name="scheduleTime" required>
-
-                        <button type="submit">Update Schedule</button>
-                    </form>
+                    <div class="option-content">
+                        <h3>View Public Place Garbage Report</h3>
+                        <div id="report-preview" class="preview-box">
+                            <ul id="report-list"></ul>
+                            <!-- Dynamic content from JS will be inserted here -->
+                            <p>Loading reports...</p>
+                        </div>
+                        <p>See garbage reported at public places.</p>
+                    </div>
+                    <a href="view-garbage-reports.html" class="button">See Garbage Reports</a>
                 </div>
+                <div class="option">
+                    <div class="option-content">
+                        <h3>View Report from the General Public</h3>
+                        <div id="report-preview" class="preview-box">
+                            <ul id="public-report-list"></ul>
+                            <!-- Dynamic content from JS will be inserted here -->
+                            <p>Loading public reports...</p>
+                        </div>
+                        <p>See reports from the general public.</p>
+                    </div>
+                    <a href="general-public-reports.html" class="button">See General Reports</a>
+                </div>
+                <div class="form-container">
+                    <div class="option">
+                        <div class="option-content">
+                            <h3>Update Garbage Collection Schedule</h3>
+                            <p>Manage the garbage collection schedule below.</p>
+
+                            <form id="updateScheduleForm" onsubmit="updateSchedule(event)">
+
+                                <label for="employeeName">Employee Name:</label>
+                                <input type="text" id="employeeName" name="employeeName" placeholder="Enter your name"
+                                    required>
+
+                                <label for="area">Area:</label>
+                                <input type="text" id="area" name="area" placeholder="Enter area name" required>
+
+                                <label for="scheduleDay">Day:</label>
+                                <input type="text" id="scheduleDay" name="scheduleDay"
+                                    placeholder="Enter day (e.g., Monday)" required>
+
+                                <label for="scheduleDate">Date:</label>
+                                <input type="date" id="scheduleDate" name="scheduleDate" placeholder="Select date"
+                                    required>
+
+                                <label for="scheduleTime">Time:</label>
+                                <input type="time" id="scheduleTime" name="scheduleTime" placeholder="Select time"
+                                    required>
+                                <button type="submit" class="button">Update Schedule</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
     </section>
@@ -64,7 +108,5 @@
             <p>Urban Waste Control System | © 2024 All rights reserved</p>
         </div>
     </footer>
-
-  
 </body>
 </html>

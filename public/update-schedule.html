@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update Schedule - Urban Waste Control</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="js/auth.js"></script>
+</head>
+<body onload="checkLogin();">
+    <header>
+        <nav>
+            <div class="logo">
+                <a href="index.html">
+                    <img src="images/logo2NoBg.png" alt="Urban Waste Control Logo">
+                    <span class="logotext">Urban Waste Control</span>
+                </a>
+            </div>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="#" onclick="logout()">Logout</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <section id="update-schedule" class="dashboard-section">
+        <div class="container">
+            <h1>Update Garbage Collection Schedule</h1>
+            <form id="updateScheduleForm" onsubmit="updateSchedule(event)">
+                <label for="employeeName">Employee Name:</label>
+                <input type="text" id="employeeName" name="employeeName" required>
+
+                <label for="area">Area:</label>
+                <input type="text" id="area" name="area" required>
+
+                <label for="scheduleDay">Day:</label>
+                <input type="text" id="scheduleDay" name="scheduleDay" required>
+
+                <label for="scheduleDate">Date:</label>
+                <input type="date" id="scheduleDate" name="scheduleDate" required>
+
+                <label for="scheduleTime">Time:</label>
+                <input type="time" id="scheduleTime" name="scheduleTime" required>
+
+                <button type="submit">Update Schedule</button>
+            </form>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <p>Urban Waste Control System | © 2024 All rights reserved</p>
+        </div>
+    </footer>
+</body>
+</html>
