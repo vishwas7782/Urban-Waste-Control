@@ -31,13 +31,15 @@ header {
     background-color: #0056b3;
     padding: 1rem 0;
     color: #fff;
+
 }
 
 nav {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px 20px;
+    padding: 0px 20px;
+    
 }
 
 nav a {
@@ -59,6 +61,10 @@ nav a {
     font-size: 1.5rem;
     font-weight: bold;
     color: #fff;
+}
+.logotext{
+    position: relative;
+    top: -20px;
 }
 
 nav ul {
@@ -90,27 +96,20 @@ nav ul li a:hover {
 .login-btn:hover, .signup-btn:hover {
     background-color: #ff9900;
 }
-
-/* Dashboard Options Grid */
-.dashboard-options {
-    display: flex;
-    flex-wrap: wrap; /* Allow wrapping to the next line */
-    justify-content: space-between; /* Space out the options */
-    margin-top: 20px;
+section#verification {
+    text-align: center;
+    margin-top: 100px;
 }
 
-.option {
-    flex: 1 1 30%; /* Grow and shrink to fit, with a basis of 30% */
-    margin: 10px; /* Spacing between options */
-    padding: 20px;
-    background-color: #fff; /* White background for each option */
-    border-radius: 5px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
-    transition: transform 0.2s; /* Animation effect */
+#verification h1 {
+    color: #333;
+    font-size: 2.5em;
+    margin-bottom: 20px;
 }
 
-.option:hover {
-    transform: translateY(-5px); /* Slight lift on hover */
+#verification p {
+    font-size: 1.2em;
+    color: #777;
 }
 
 /* Banner Section */
@@ -219,7 +218,7 @@ nav ul li a:hover {
 
 .team-member img {
     width: 100%;
-    height: auto;
+    height: 250px;
     border-radius: 50%; /* Makes the image circular */
     margin-bottom: 15px;
 }
@@ -301,6 +300,7 @@ form button {
     border: none;
     border-radius: 5px;
     cursor: pointer;
+    font-size: 1rem;
 }
 
 form button:hover {
@@ -373,22 +373,21 @@ form button:hover {
         width: 90%;
     }
 }
+
+/* Email Verification */
+.verification-message {
+    display: none;
+    margin-top: 10px;
+    color: green;
+}
+.error-message {
+    color: red;
+}
 .schedule-list {
     max-height: 400px; /* Set a max height for scrolling */
     overflow-y: auto; /* Enable vertical scrolling */
 }
 
-.schedule-item {
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    margin: 5px 0;
-    padding: 10px;
-    background-color: #f9f9f9;
-}
-
-.schedule-item p {
-    margin: 5px 0;
-}
 
 /* Schedule Section */
 .schedule-results ul {
@@ -434,15 +433,139 @@ footer ul li a:hover {
 }
 
 /* Dashboard Section Styles */
-.dashboard-section {
-    padding: 50px 0;
-    background-color: #fff;
+
+/* Dashboard Options Grid */
+.dashboard-options {
+    display: flex;
+    flex-wrap: wrap; /* Allow wrapping to the next line */
+    justify-content: space-between; /* Space out the options */
+    margin-top: 20px;
+}
+/* Flexbox for the two forms */
+.dashboard-forms-row {
+    display: flex;
+    justify-content: space-between; /* Space between the forms */
+    flex-wrap: wrap; /* Allows wrapping if the screen is too small */
+    margin-top: 30px;
 }
 
+.form-container {
+    /*
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 5px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); */
+
+  
+
+    display: flex; /* Use flexbox to center items */
+    flex: 1 1 45%;  /*Each form takes 45% of the container, with space in between */
+    max-width: 500px; /* Set a maximum width for larger screens */
+    flex-direction: column; /* Stack items vertically */
+    align-items: center; /* Center horizontally */
+    margin: 20px auto; /* Center the form container with auto margins */
+    margin-top: 20px; /* Add some space above the form */
+    padding: 20px;
+    background-color: #f8f9fa; /* Light background for contrast */
+    border-radius: 5px;
+    border: 1px solid #ddd; /* Light border for definition */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+
+    
+
+}
+
+.form-container form {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-container input, 
+.form-container select, 
+.form-container textarea {
+    margin-bottom: 15px;
+    padding: 10px;
+    font-size: 1rem;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 768px) {
+    .dashboard-forms-row {
+        flex-direction: column; /* Stack forms on top of each other */
+    }
+
+    .form-container {
+        flex: 1 1 100%; /* Each form takes 100% width on small screens */
+        margin-bottom: 20px; /* Add space between stacked forms */
+    }
+}
+
+
+/* trial */
+/* trial */
+
+.option {
+
+    flex: 1 1 calc(30% - 20px); /* Adjusts the box size */
+    margin: 10px; /* Space between boxes */
+    padding: 15px;
+    background-color: #ffffff; /* White background for boxes */
+    border: 1px solid #ccc; /* Light border */
+    border-radius: 8px; /* Rounded corners */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+    transition: transform 0.2s; /* Smooth hover effect */
+    
+}
+
+.option:hover {
+    transform: translateY(-5px); /* Slight lift on hover */
+}
+
+
+.dashboard-section {
+   max-height: 700px;  /* Set a fixed height for the section */
+    /* overflow-y: auto; */
+    overflow-y: auto; /* Enable vertical scrolling */
+    overflow-x: hidden; /* Hide horizontal scroll (if any) */
+    padding: 50px 0;
+    /* background-color: #fff; */
+    background-color: #f8f9fa; /* Light background for the section */
+    /* padding: 20px; */
+    border-radius: 8px;
+
+}
 .dashboard {
     margin-top: 30px;
     text-align: center;
 }
+
+.preview-box {
+    background-color: #f9f9f9;
+    padding: 10px;
+    margin-top: 10px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    height: 200px; /* Adjust height as needed */
+    overflow-y: auto; /* Add vertical scroll when content exceeds height */
+}
+
+.preview-box ul {
+    list-style-type: none; /* Remove default bullet points */
+    padding: 0; /* Remove default padding */
+    margin: 0; /* Remove default margin */
+}
+
+.preview-box ul li {
+    padding: 10px;
+    border-bottom: 1px solid #ddd; /* Separator between items */
+}
+
+.preview-box ul li:last-child {
+    border-bottom: none; /* Remove separator from last item */
+}
+
 
 /* User Dashboard updated */ 
 #userDashboard,
@@ -457,6 +580,65 @@ footer ul li a:hover {
     border-radius: 5px;
     margin-top: 20px;
 }
+
+/* Garbage Reports Section */
+.garbage-reports-section, .user-concerns-section, .schedule-section, .own-concern-section, .public-garbage-report-section {
+    margin-top: 30px; /* Space above the section */
+    padding: 20px;
+    background-color: #f8f9fa; /* Light background for contrast */
+    border-radius: 5px;
+    border: 1px solid #ddd; /* Light border for definition */
+    max-height: 400px; /* Set a fixed height for the section */
+    overflow-y: auto; /* Enable vertical scrolling */
+    overflow-x: hidden; /* Hide horizontal scroll (if any) */
+}
+
+.garbage-report-item,.concern-item, .schedule-item, .public-garbage-report-item {
+    padding: 15px;
+    margin-bottom: 15px; /* Space between reports */
+    background-color: #ffffff; /* White background for report items */
+    border: 1px solid #ccc; /* Light border around each report */
+    border-radius: 5px; /* Rounded corners */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+    transition: transform 0.2s; /* Smooth hover effect */
+}
+
+.garbage-report-item:hover,.concern-item:hover,.schedule-item:hover, .public-garbage-report-item:hover {
+    transform: translateY(-5px); /* Lift effect on hover */
+}
+
+.garbage-report-item img {
+    max-width: 100%; /* Ensure images fit within their container */
+    height: auto; /* Maintain aspect ratio */
+    border-radius: 5px; /* Rounded corners for images */
+}
+
+/* Button for Marking Reports Resolved */
+.garbage-report-item button, .concern-item button, .public-garbage-report-item button {
+    margin-top: 10px; /* Space above the button */
+    padding: 5px 10px;
+    background-color: #28a745; /* Green for 'resolved' action */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.garbage-report-item button:hover,.concern-item button:hover, .public-garbage-report-item button:hover {
+    background-color: #218838; /* Darker green on hover */
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .garbage-report-item,.concern-item,.schedule-item,.public-garbage-report-item {
+        margin: 10px; /* Adjust margin for smaller screens */
+    }
+
+    .garbage-reports-section,.user-concerns-section,.schedule-section,.own-concern-section,.public-garbage-report-section {
+        padding: 15px; /* Reduce padding on smaller screens */
+    }
+}
+
 
 /* Update Schedule Form */
 #updateScheduleForm {
@@ -476,5 +658,54 @@ footer ul li a:hover {
     /* Additional responsive adjustments for forms */
     form {
         max-width: 100%; /* Ensure forms take full width on smaller screens */
+    }
+}
+
+
+/* General styling for the search bar */
+.search-input {
+    width: 100%; /* Full width of its container */
+    padding: 10px;
+    margin: 20px 0; /* Spacing around the input */
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Styling for the container where the schedule items will be displayed */
+.schedule-list {
+    margin-top: 20px;
+}
+
+/* Highlight the item on hover */
+.schedule-item:hover {
+    background-color: #f1f1f1;
+}
+
+/* Styling for the text in each schedule item */
+.schedule-item p {
+    margin: 5px 0;
+    font-size: 16px;
+    color: #333;
+}
+
+/* Strong tags in schedule details */
+.schedule-item p strong {
+    color: #555;
+}
+
+.searchScheduleForm {
+    display: block; /* Make sure the input box is visible */
+    margin-bottom: 10px;
+}
+/* Responsive styling to ensure the search input and results adapt to screen size */
+@media (max-width: 768px) {
+    .schedule-item {
+        padding: 10px;
+    }
+    
+    .search-input {
+        font-size: 14px;
     }
 }
