@@ -1,153 +1,111 @@
-# Urban Waste Control System 🚮🌍
-A smart solution for efficient urban waste management
+# 🗑️ Urban Waste Control System (MERN)
 
-🌐 **Live Demo:** [Urban Waste Control System](http://your-live-demo-url.com)
+A full-stack waste-management platform that connects residents with municipal bodies for timely
+garbage collection, issue reporting, and schedule management. This repository was upgraded from a
+plain HTML/CSS/JS + monolithic Express app into a **MERN** stack with a **React (Vite)** frontend and
+a **modular Express/MongoDB** backend, cleanly separated into two apps.
 
-## Table of Contents 📑
-- [Introduction](#introduction)
-- [Features](#features)
-- [Technologies Used](#technologies-used)
-- [Usage](#usage)
-- [Screenshots](#screenshots)
-- [Contributing](#contributing)
-- [License](#license)
-- [Contact](#contact)
+## 🧱 Project structure
 
-## Introduction 🎯
-The Urban Waste Control System is designed to enhance the communication between municipal authorities and the public. It empowers users to:
-- Report garbage collection issues.
-- View garbage collection schedules.
-- Municipal employees can monitor reports, update schedules, and track public issues.
+```
+Urban-Waste-Control/
+├── backend/          # Express + MongoDB REST API (modular: models, routes, controllers, middleware)
+│   ├── src/
+│   │   ├── config/       # DB connection
+│   │   ├── models/       # Mongoose schemas
+│   │   ├── middleware/   # auth, upload (multer), error handler
+│   │   ├── controllers/  # request handlers
+│   │   ├── routes/       # route definitions
+│   │   ├── utils/        # email + token helpers
+│   │   └── app.js        # express app wiring
+│   ├── uploads/          # uploaded garbage images (served at /uploads)
+│   └── server.js         # entry point
+├── frontend/         # React (Vite) SPA — interactive UI, react-router, axios, toasts
+│   └── src/
+│       ├── api/          # axios client + auth interceptor
+│       ├── context/      # AuthContext
+│       ├── components/   # Navbar, Footer, ProtectedRoute, Loader, ...
+│       ├── pages/        # Home, About, Services, Contact, Login, Signup, dashboards, ...
+│       └── styles/       # global + page styles
+└── package.json      # workspace root with convenience scripts
+```
 
-Our goal is to make cities cleaner and the process of waste management more efficient.
+## ✨ Features
 
-## Features ✨
-### Public Dashboard:
-- Citizens can report missed garbage collection or extra garbage, view schedules, and raise concerns.
+- **Authentication** — signup with email verification (Nodemailer), JWT login, role-based access
+  (`user` vs `municipal`).
+- **Residents (user)** — raise concerns, track their own concerns, report public garbage with photos,
+  view collection schedules.
+- **Municipal staff** — dashboard with summary stats, manage concerns / garbage reports / anonymous
+  public reports (mark resolved, delete), publish collection schedules.
+- **Anonymous public** — report garbage without an account, browse public collection schedules.
+- **Contact** — messages delivered by email.
 
-### Municipal Dashboard:
-- Municipal employees can view reports and concerns, update garbage collection schedules, and manage public feedback.
+## 🚀 Getting started
 
-### Mobile-Responsive:
-- Accessible on all devices, including smartphones, tablets, and desktops.
+### Prerequisites
+- Node.js 18+
+- MongoDB running locally (or a MongoDB Atlas URI)
 
-### Image Upload for Public Reports:
-- Public users can attach images of garbage spots without logging in.
+### 1. Install dependencies
+```bash
+npm run install:all
+```
 
-### Email Notifications:
-- Users receive verification and update emails when their reports are processed.
+### 2. Configure environment
+Create `backend/.env` from the example and fill in values:
+```bash
+cp backend/.env.example backend/.env
+```
+```
+PORT=3000
+MONGO_URI=mongodb://localhost:27017/UrbanWaste-db
+JWT_SECRET=replace_with_a_long_random_secret
+EMAIL_USER=your@gmail.com
+EMAIL_PASS=your_gmail_app_password
+CLIENT_URL=http://localhost:5173
+SERVER_URL=http://localhost:3000
+```
+Optionally create `frontend/.env` (defaults to `http://localhost:3000` if omitted):
+```
+VITE_API_URL=http://localhost:3000
+```
 
-### Secure Authentication:
-- Role-based access for public users and municipal employees using JWT.
+### 3. Run both apps (from the repo root)
+```bash
+npm run dev
+```
+- Backend API → http://localhost:3000
+- Frontend → http://localhost:5173
 
-## Technologies Used 🛠️
-### Frontend
-- **HTML5**, **CSS3**, **JavaScript**: Core web technologies for UI.
-- **Responsive Design**: Ensures the app looks great across all screen sizes.
+Or run them separately: `npm run dev:backend` and `npm run dev:frontend`.
 
-### Backend
-- **Node.js** & **Express.js**: Server-side scripting, handling API requests, and routing.
-- **JWT (JSON Web Token)**: Secure authentication for user login and role-based access.
+## 🔌 API overview
 
-### Database
-- **MongoDB**: NoSQL database for storing user data, garbage reports, and collection schedules.
+All endpoints are served from the backend root (no `/api` prefix). Authenticated requests send
+`Authorization: Bearer <token>`.
 
-### File Upload
-- **Multer**: Middleware for handling multipart/form-data, used for uploading images for public reports.
+| Method | Path | Access | Purpose |
+| --- | --- | --- | --- |
+| POST | `/signup` | public | Register + send verification email |
+| GET | `/verify-email?token=` | public | Verify email |
+| POST | `/login` | public | Login, returns JWT + role |
+| POST | `/send-contact-mail` | public | Contact form |
+| POST | `/raise-concern` | user | Raise a concern |
+| GET | `/view-user-concerns` | user | List own concerns |
+| GET | `/view-concerns` | municipal | List all concerns |
+| PATCH | `/mark-solved/:id` | municipal | Resolve a concern |
+| DELETE | `/delete-concern/:id` | municipal | Delete a concern |
+| POST | `/update-schedule` | municipal | Publish a schedule |
+| GET | `/view-schedule?area=` | auth | Search schedules |
+| GET | `/public-schedule?area=` | public | Search schedules (no login) |
+| POST | `/report-public-garbage` | user | Report garbage (with image) |
+| GET | `/view-garbage-reports` | municipal | List garbage reports |
+| POST | `/report-public-garbage-no-login` | public | Anonymous garbage report |
+| GET | `/view-public-garbage-reports` | municipal | List anonymous reports |
 
-### Email Integration
-- **Nodemailer**: For sending email notifications to users and employees.
+(Plus `mark-solved`/`delete` variants for garbage and public-garbage reports, and `GET /health`.)
 
-### Optional Payment Gateway
-- Integration with third-party payment gateways for additional garbage collection services.
-
-## Usage 🚀
-### Public Dashboard
-- Citizens can report issues by providing details and uploading images.
-- They can view the garbage collection schedule for their locality.
-
-### Municipal Dashboard
-- Municipal employees can monitor garbage reports and update collection schedules.
-- Employees can mark reports as resolved or delete them.
-
-
-## Screenshots 📸
-### Home Page
-![Home Page](https://github.com/vishwas7782/Urban-Waste-Control/blob/main/UWCS%20Screenshots/Screenshot_26-10-2024_3136_localhost.jpeg)
-
-### About Us
-![About us](https://github.com/vishwas7782/Urban-Waste-Control/blob/main/UWCS%20Screenshots/Screenshot_26-10-2024_320_localhost.jpeg)
-
-### Services
-![Services](https://github.com/vishwas7782/Urban-Waste-Control/blob/main/UWCS%20Screenshots/Screenshot_26-10-2024_3231_localhost.jpeg)
-
-### Report Garbage by General Public (without login)
-![Services](https://github.com/vishwas7782/Urban-Waste-Control/blob/main/UWCS%20Screenshots/Screenshot_26-10-2024_3250_localhost.jpeg)
-
-### View Garbage Collection Schedule (without login)
-![Services](https://github.com/vishwas7782/Urban-Waste-Control/blob/main/UWCS%20Screenshots/Screenshot_26-10-2024_3648_localhost.jpeg)
-
-### Contact Us
-![Services](https://github.com/vishwas7782/Urban-Waste-Control/blob/main/UWCS%20Screenshots/Screenshot_26-10-2024_3740_localhost.jpeg)
-
-### Sign Up - Role: Public Account
-![Services](https://github.com/vishwas7782/Urban-Waste-Control/blob/main/UWCS%20Screenshots/Screenshot_26-10-2024_3820_localhost.jpeg)
-
-### Sign Up - Email Verification
-![Services](https://github.com/vishwas7782/Urban-Waste-Control/blob/main/UWCS%20Screenshots/Screenshot_26-10-2024_3916_mail.google.com.jpeg)
-
-### Login
-![Services](https://github.com/vishwas7782/Urban-Waste-Control/blob/main/UWCS%20Screenshots/Screenshot_26-10-2024_3959_localhost.jpeg)
-
-### Public Dashboard
-![Public Dashboard](https://github.com/vishwas7782/Urban-Waste-Control/blob/main/UWCS%20Screenshots/Screenshot_26-10-2024_3130_localhost.jpeg)
-
-### Public Dashboard- View Garbage Collection Schedule
-![Public Dashboard- View Garbage Collection Schedule](https://github.com/vishwas7782/Urban-Waste-Control/blob/main/UWCS%20Screenshots/Screenshot_26-10-2024_31534_localhost.jpeg)
-
-### Public Dashboard- Raise Concern
-![Public Dashboard- Raise Concern](https://github.com/vishwas7782/Urban-Waste-Control/blob/main/UWCS%20Screenshots/Screenshot_26-10-2024_31422_localhost.jpeg)
-
-### Public Dashboard- View Raised Concern
-![Public Dashboard- View Raised Concern](https://github.com/vishwas7782/Urban-Waste-Control/blob/main/UWCS%20Screenshots/Screenshot_26-10-2024_3169_localhost.jpeg)
-
-### Public Dashboard- Report Garbage
-![Public Dashboard- Report Garbage](https://github.com/vishwas7782/Urban-Waste-Control/blob/main/UWCS%20Screenshots/Screenshot_26-10-2024_31630_localhost.jpeg)
-
-### Sign Up - Role:Municipal Employee Account
-![Services](https://github.com/vishwas7782/Urban-Waste-Control/blob/main/UWCS%20Screenshots/Screenshot_26-10-2024_35033_localhost.jpeg)
-
-### Municipal Dashboard
-![Municipal Dashboard](https://github.com/vishwas7782/Urban-Waste-Control/blob/main/UWCS%20Screenshots/Screenshot_26-10-2024_31648_localhost.jpeg)
-
-### Municipal Dashboard- Update Schedule
-![Municipal Dashboard- Update Schedule](https://github.com/vishwas7782/Urban-Waste-Control/blob/main/UWCS%20Screenshots/Screenshot_26-10-2024_31711_localhost.jpeg)
-
-### Municipal Dashboard- View Public Concerns
-![Municipal Dashboard- View Public Concerns](https://github.com/vishwas7782/Urban-Waste-Control/blob/main/UWCS%20Screenshots/Screenshot_26-10-2024_3490_localhost.jpeg)
-
-### Municipal Dashboard- View Garbage Reports
-![Municipal Dashboard- View Garbage Reports](https://github.com/vishwas7782/Urban-Waste-Control/blob/main/UWCS%20Screenshots/Screenshot_26-10-2024_31731_localhost.jpeg)
-
-### Municipal Dashboard- View Garbage Reports (General Public)
-![Municipal Dashboard- View Garbage Reports (General Public)](https://github.com/vishwas7782/Urban-Waste-Control/blob/main/UWCS%20Screenshots/Screenshot_26-10-2024_31831_localhost.jpeg)
-
-## Contributing 🤝
-We welcome contributions to the project. To get started:
-1. Fork the repository.
-2. Create a new branch:
-   git checkout -b feature-branch
-3. Make your changes and commit them:
-    git commit -m 'Add new feature'
-4. Push to the branch:
-    git push origin feature-branch
-5. Create a pull request.
-    For major changes, please open an issue first to discuss what you would like to change.
-
-## License 📄
-This project is licensed under the [MIT License](LICENSE). See the LICENSE file for more details.
-
-## Contact 📧
-For any queries or suggestions, feel free to reach out:
-- Email: [urbanwastecontrol@gmail.com](mailto:urbanwastecontrol@gmail.com)
-- GitHub: [Urban Waste Control System](https://github.com/your-username/urban-waste-control)
+## 🛡️ Notes
+- Never commit `backend/.env` — it contains secrets. It is git-ignored.
+- Uploaded images are stored in `backend/uploads/` and served statically.
