@@ -22,9 +22,18 @@ export default function App() {
     <>
       <Toaster
         position="top-right"
+        // Clear the sticky navbar: at z-index 9999 a top-right toast would
+        // otherwise sit on top of the hamburger button on a phone. Spanning
+        // left-to-right lets long messages wrap across the screen instead of
+        // stacking up in a narrow column.
+        containerStyle={{
+          top: 'calc(var(--nav-h) + 0.5rem)',
+          left: '0.75rem',
+          right: '0.75rem',
+        }}
         toastOptions={{
           duration: 4000,
-          style: { borderRadius: '10px', fontSize: '0.92rem' },
+          style: { borderRadius: '12px', fontSize: '0.92rem', maxWidth: '100%' },
           success: { iconTheme: { primary: '#059669', secondary: '#fff' } },
           error: { iconTheme: { primary: '#dc2626', secondary: '#fff' } },
         }}

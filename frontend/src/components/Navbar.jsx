@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { NavLink, Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { NavLink, Link, useNavigate, useLocation } from 'react-router-dom';
 import { FiMenu, FiX, FiLogOut } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext.jsx';
 
@@ -16,9 +16,37 @@ export default function Navbar() {
   const [open, setOpen] = useState(false);
   const { isAuthenticated, role, logout } = useAuth();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
 
   const close = () => setOpen(false);
   const dashboardPath = role === 'municipal' ? '/municipal' : '/dashboard';
+
+  // Never leave the drawer hanging open over a page the user navigated to
+  // some other way (browser back, a redirect after login).
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
+
+  // Freeze the page behind the drawer so a swipe scrolls the menu, not the
+  // content underneath it.
+  useEffect(() => {
+    if (!open) return undefined;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = previous;
+    };
+  }, [open]);
+
+  // Escape closes it, as with any other overlay.
+  useEffect(() => {
+    if (!open) return undefined;
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') setOpen(false);
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [open]);
 
   const handleLogout = () => {
     close();
@@ -43,12 +71,17 @@ export default function Navbar() {
           className="hamburger"
           aria-label={open ? 'Close menu' : 'Open menu'}
           aria-expanded={open}
+          aria-controls="nav-menu"
           onClick={() => setOpen((v) => !v)}
         >
           {open ? <FiX /> : <FiMenu />}
         </button>
 
-        <div className={`nav-menu ${open ? 'open' : ''}`}>
+        {open && (
+          <button className="nav-overlay" aria-label="Close menu" onClick={close} />
+        )}
+
+        <div id="nav-menu" className={`nav-menu ${open ? 'open' : ''}`}>
           <ul className="nav-links">
             {publicLinks.map((l) => (
               <li key={l.to}>

@@ -83,7 +83,7 @@ export default function Login() {
               />
             </Field>
             <Field label="Password" htmlFor="password" required error={errors.password}>
-              <div style={{ position: 'relative' }}>
+              <div className="input-affix">
                 <input
                   id="password"
                   name="password"
@@ -93,22 +93,12 @@ export default function Login() {
                   onChange={update}
                   placeholder="Your password"
                   autoComplete="current-password"
-                  style={{ paddingRight: '2.75rem' }}
                 />
                 <button
                   type="button"
+                  className="pw-toggle"
                   onClick={() => setShowPw((v) => !v)}
                   aria-label={showPw ? 'Hide password' : 'Show password'}
-                  style={{
-                    position: 'absolute',
-                    right: 10,
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    background: 'none',
-                    border: 'none',
-                    color: 'var(--muted)',
-                    fontSize: '1.1rem',
-                  }}
                 >
                   {showPw ? <FiEyeOff /> : <FiEye />}
                 </button>

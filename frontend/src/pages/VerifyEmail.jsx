@@ -40,7 +40,7 @@ export default function VerifyEmail() {
 
   return (
     <div className="page container fade-in">
-      <div className="verify-box">
+      <div className="verify-result">
         {state === 'loading' && <Loader label="Verifying your email..." />}
 
         {state === 'success' && (
