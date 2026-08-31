@@ -9,14 +9,22 @@ const notFound = (req, res, next) => {
 
 // eslint-disable-next-line no-unused-vars
 const errorHandler = (err, req, res, next) => {
-    console.error(err.stack || err);
+    const status = err.status || 500;
+
+    // Client errors (validation, wrong state, not found) are expected — log a
+    // single line. Only real server faults deserve a full stack trace.
+    if (status >= 500) {
+        console.error(err.stack || err);
+    } else if (process.env.NODE_ENV !== 'test') {
+        console.warn(`${status} ${req.method} ${req.originalUrl} — ${err.message}`);
+    }
 
     // Multer file-size / upload errors surface as 400s.
     if (err.name === 'MulterError' || err.message === 'Only image files are allowed') {
         return res.status(400).json({ success: false, message: err.message });
     }
 
-    res.status(err.status || 500).json({
+    res.status(status).json({
         success: false,
         message: err.message || 'Internal Server Error',
     });

@@ -10,20 +10,15 @@ import {
   FiMapPin,
   FiUser,
   FiSend,
+  FiClock,
 } from 'react-icons/fi';
 import client, { apiErrorMessage } from '../api/client.js';
 import Field from '../components/Field.jsx';
 import Loader from '../components/Loader.jsx';
-import StatusBadge, { isResolved } from '../components/StatusBadge.jsx';
-
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-
-// Resolve possibly-relative image paths against the API base.
-function resolveImg(url) {
-  if (!url) return '';
-  if (/^https?:\/\//i.test(url)) return url;
-  return `${API_BASE}${url.startsWith('/') ? '' : '/'}${url}`;
-}
+import StatusBadge from '../components/StatusBadge.jsx';
+import WorkflowMeta from '../components/WorkflowMeta.jsx';
+import resolveImg from '../utils/imageUrl.js';
+import { isPending, isAwaitingVerification, isDeletable } from '../utils/status.js';
 
 const TABS = [
   { id: 'overview', label: 'Overview', icon: <FiGrid /> },
@@ -117,7 +112,9 @@ export default function MunicipalDashboard() {
 }
 
 function Overview({ concerns, reports, publicReports }) {
-  const pendingConcerns = concerns.filter((c) => !isResolved(c.status)).length;
+  const all = [...concerns, ...reports, ...publicReports];
+  const pendingConcerns = concerns.filter((c) => isPending(c.status)).length;
+  const awaiting = all.filter((r) => isAwaitingVerification(r.status)).length;
   const tiles = [
     {
       label: 'Total Concerns',
@@ -146,6 +143,13 @@ function Overview({ concerns, reports, publicReports }) {
       icon: <FiCalendar />,
       color: 'var(--danger)',
       bg: 'rgba(220,38,38,.12)',
+    },
+    {
+      label: 'Awaiting Citizen Verification',
+      value: awaiting,
+      icon: <FiClock />,
+      color: 'var(--secondary)',
+      bg: 'rgba(2,132,199,.12)',
     },
   ];
 
@@ -187,6 +191,37 @@ function useAction(refresh) {
   return { busyId, run };
 }
 
+// Mark Solved -> locked while a citizen confirms -> Delete.
+// The API enforces the same gate; this just keeps the button honest.
+function RecordActions({ record, busy, noun, onMarkSolved, onDelete }) {
+  if (isAwaitingVerification(record.status)) {
+    return (
+      <div className="workflow-hint">
+        <FiClock aria-hidden="true" /> Waiting for a citizen to confirm the fix — this {noun} can be
+        deleted once they do.
+      </div>
+    );
+  }
+
+  if (isDeletable(record.status)) {
+    return (
+      <div className="record-actions">
+        <button className="btn btn-danger btn-sm" disabled={busy} onClick={onDelete}>
+          <FiTrash2 aria-hidden="true" /> Delete
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="record-actions">
+      <button className="btn btn-primary btn-sm" disabled={busy} onClick={onMarkSolved}>
+        <FiCheck aria-hidden="true" /> Mark Solved
+      </button>
+    </div>
+  );
+}
+
 function ManageConcerns({ concerns, refresh }) {
   const { busyId, run } = useAction(refresh);
 
@@ -200,73 +235,51 @@ function ManageConcerns({ concerns, refresh }) {
 
   return (
     <div className="grid grid-2">
-      {concerns.map((c) => {
-        const resolved = isResolved(c.status);
-        return (
-          <div key={c._id} className="card record-card">
-            <div className="record-head">
-              <h3 className="record-title">{c.issueType}</h3>
-              <StatusBadge status={c.status} />
-            </div>
-            <div className="record-meta">
-              {c.name && (
-                <span>
-                  <FiUser aria-hidden="true" /> <strong>Name:</strong> {c.name}
-                </span>
-              )}
-              <span>
-                <FiMapPin aria-hidden="true" /> <strong>Locality:</strong> {c.locality}
-              </span>
-              {c.houseNumber && (
-                <span>
-                  <strong>House No:</strong> {c.houseNumber}
-                </span>
-              )}
-              {c.mobileNum && (
-                <span>
-                  <strong>Mobile:</strong> {c.mobileNum}
-                </span>
-              )}
-              {c.additionalDetails && (
-                <span>
-                  <strong>Details:</strong> {c.additionalDetails}
-                </span>
-              )}
-            </div>
-            <div className="record-actions">
-              {!resolved ? (
-                <button
-                  className="btn btn-primary btn-sm"
-                  disabled={busyId === c._id}
-                  onClick={() =>
-                    run(
-                      c._id,
-                      () => client.patch(`/mark-solved/${c._id}`),
-                      'Concern marked as solved.'
-                    )
-                  }
-                >
-                  <FiCheck aria-hidden="true" /> Mark Solved
-                </button>
-              ) : (
-                <button
-                  className="btn btn-danger btn-sm"
-                  disabled={busyId === c._id}
-                  onClick={() =>
-                    run(
-                      c._id,
-                      () => client.delete(`/delete-concern/${c._id}`),
-                      'Concern deleted.'
-                    )
-                  }
-                >
-                  <FiTrash2 aria-hidden="true" /> Delete
-                </button>
-              )}
-            </div>
+      {concerns.map((c) => (
+        <div key={c._id} className="card record-card">
+          <div className="record-head">
+            <h3 className="record-title">{c.issueType}</h3>
+            <StatusBadge status={c.status} />
           </div>
-        );
-      })}
+          <div className="record-meta">
+            {c.name && (
+              <span>
+                <FiUser aria-hidden="true" /> <strong>Name:</strong> {c.name}
+              </span>
+            )}
+            <span>
+              <FiMapPin aria-hidden="true" /> <strong>Locality:</strong> {c.locality}
+            </span>
+            {c.houseNumber && (
+              <span>
+                <strong>House No:</strong> {c.houseNumber}
+              </span>
+            )}
+            {c.mobileNum && (
+              <span>
+                <strong>Mobile:</strong> {c.mobileNum}
+              </span>
+            )}
+            {c.additionalDetails && (
+              <span>
+                <strong>Details:</strong> {c.additionalDetails}
+              </span>
+            )}
+          </div>
+          <WorkflowMeta record={c} />
+          <RecordActions
+            record={c}
+            busy={busyId === c._id}
+            noun="concern"
+            onMarkSolved={() =>
+              run(c._id, () => client.patch(`/mark-solved/${c._id}`), 'Concern marked as solved.')
+            }
+            onDelete={() =>
+              run(c._id, () => client.delete(`/delete-concern/${c._id}`), 'Concern deleted.')
+            }
+          />
+        </div>
+      ))}
     </div>
   );
 }
@@ -284,78 +297,60 @@ function ManageGarbage({ reports, refresh }) {
 
   return (
     <div className="grid grid-2">
-      {reports.map((r) => {
-        const resolved = isResolved(r.status);
-        return (
-          <div key={r._id} className="card record-card">
-            {r.imageUrl && (
-              <img
-                className="thumb"
-                src={resolveImg(r.imageUrl)}
-                alt={`Garbage reported at ${r.reportLocation || 'location'}`}
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                }}
-              />
-            )}
-            <div className="record-head">
-              <h3 className="record-title">{r.reportName || 'Garbage Report'}</h3>
-              <StatusBadge status={r.status} />
-            </div>
-            <div className="record-meta">
-              <span>
-                <FiMapPin aria-hidden="true" /> <strong>Location:</strong> {r.reportLocation}
-              </span>
-              {r.reportLandmark && (
-                <span>
-                  <strong>Landmark:</strong> {r.reportLandmark}
-                </span>
-              )}
-              {r.reportMobileNum && (
-                <span>
-                  <strong>Mobile:</strong> {r.reportMobileNum}
-                </span>
-              )}
-              {r.reportAdditionalDetails && (
-                <span>
-                  <strong>Details:</strong> {r.reportAdditionalDetails}
-                </span>
-              )}
-            </div>
-            <div className="record-actions">
-              {!resolved ? (
-                <button
-                  className="btn btn-primary btn-sm"
-                  disabled={busyId === r._id}
-                  onClick={() =>
-                    run(
-                      r._id,
-                      () => client.patch(`/mark-solved-garbage/${r._id}`),
-                      'Report marked as solved.'
-                    )
-                  }
-                >
-                  <FiCheck aria-hidden="true" /> Mark Solved
-                </button>
-              ) : (
-                <button
-                  className="btn btn-danger btn-sm"
-                  disabled={busyId === r._id}
-                  onClick={() =>
-                    run(
-                      r._id,
-                      () => client.delete(`/delete-garbage/${r._id}`),
-                      'Report deleted.'
-                    )
-                  }
-                >
-                  <FiTrash2 aria-hidden="true" /> Delete
-                </button>
-              )}
-            </div>
+      {reports.map((r) => (
+        <div key={r._id} className="card record-card">
+          {r.imageUrl && (
+            <img
+              className="thumb"
+              src={resolveImg(r.imageUrl)}
+              alt={`Garbage reported at ${r.reportLocation || 'location'}`}
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+              }}
+            />
+          )}
+          <div className="record-head">
+            <h3 className="record-title">{r.reportName || 'Garbage Report'}</h3>
+            <StatusBadge status={r.status} />
           </div>
-        );
-      })}
+          <div className="record-meta">
+            <span>
+              <FiMapPin aria-hidden="true" /> <strong>Location:</strong> {r.reportLocation}
+            </span>
+            {r.reportLandmark && (
+              <span>
+                <strong>Landmark:</strong> {r.reportLandmark}
+              </span>
+            )}
+            {r.reportMobileNum && (
+              <span>
+                <strong>Mobile:</strong> {r.reportMobileNum}
+              </span>
+            )}
+            {r.reportAdditionalDetails && (
+              <span>
+                <strong>Details:</strong> {r.reportAdditionalDetails}
+              </span>
+            )}
+          </div>
+          <WorkflowMeta record={r} />
+          <RecordActions
+            record={r}
+            busy={busyId === r._id}
+            noun="report"
+            onMarkSolved={() =>
+              run(
+                r._id,
+                () => client.patch(`/mark-solved-garbage/${r._id}`),
+                'Report marked as solved.'
+              )
+            }
+            onDelete={() =>
+              run(r._id, () => client.delete(`/delete-garbage/${r._id}`), 'Report deleted.')
+            }
+          />
+        </div>
+      ))}
     </div>
   );
 }
@@ -373,79 +368,65 @@ function ManagePublic({ reports, refresh }) {
 
   return (
     <div className="grid grid-2">
-      {reports.map((r) => {
-        const resolved = isResolved(r.status);
-        return (
-          <div key={r._id} className="card record-card">
-            {r.publicImageUrl && (
-              <img
-                className="thumb"
-                src={resolveImg(r.publicImageUrl)}
-                alt={`Garbage reported at ${r.publicReportLocation || 'location'}`}
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                }}
-              />
-            )}
-            <div className="record-head">
-              <h3 className="record-title">{r.publicReportName || 'Public Report'}</h3>
-              <StatusBadge status={r.status} />
-            </div>
-            <div className="record-meta">
-              <span>
-                <FiMapPin aria-hidden="true" /> <strong>Location:</strong>{' '}
-                {r.publicReportLocation}
-              </span>
-              {r.publicReportLandmark && (
-                <span>
-                  <strong>Landmark:</strong> {r.publicReportLandmark}
-                </span>
-              )}
-              {r.publicReportMobileNum && (
-                <span>
-                  <strong>Mobile:</strong> {r.publicReportMobileNum}
-                </span>
-              )}
-              {r.publicReportAdditionalDetails && (
-                <span>
-                  <strong>Details:</strong> {r.publicReportAdditionalDetails}
-                </span>
-              )}
-            </div>
-            <div className="record-actions">
-              {!resolved ? (
-                <button
-                  className="btn btn-primary btn-sm"
-                  disabled={busyId === r._id}
-                  onClick={() =>
-                    run(
-                      r._id,
-                      () => client.patch(`/mark-solved-public-garbage/${r._id}`),
-                      'Public report marked as solved.'
-                    )
-                  }
-                >
-                  <FiCheck aria-hidden="true" /> Mark Solved
-                </button>
-              ) : (
-                <button
-                  className="btn btn-danger btn-sm"
-                  disabled={busyId === r._id}
-                  onClick={() =>
-                    run(
-                      r._id,
-                      () => client.delete(`/delete-public-garbage/${r._id}`),
-                      'Public report deleted.'
-                    )
-                  }
-                >
-                  <FiTrash2 aria-hidden="true" /> Delete
-                </button>
-              )}
-            </div>
+      {reports.map((r) => (
+        <div key={r._id} className="card record-card">
+          {r.publicImageUrl && (
+            <img
+              className="thumb"
+              src={resolveImg(r.publicImageUrl)}
+              alt={`Garbage reported at ${r.publicReportLocation || 'location'}`}
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+              }}
+            />
+          )}
+          <div className="record-head">
+            <h3 className="record-title">{r.publicReportName || 'Public Report'}</h3>
+            <StatusBadge status={r.status} />
           </div>
-        );
-      })}
+          <div className="record-meta">
+            <span>
+              <FiMapPin aria-hidden="true" /> <strong>Location:</strong>{' '}
+              {r.publicReportLocation}
+            </span>
+            {r.publicReportLandmark && (
+              <span>
+                <strong>Landmark:</strong> {r.publicReportLandmark}
+              </span>
+            )}
+            {r.publicReportMobileNum && (
+              <span>
+                <strong>Mobile:</strong> {r.publicReportMobileNum}
+              </span>
+            )}
+            {r.publicReportAdditionalDetails && (
+              <span>
+                <strong>Details:</strong> {r.publicReportAdditionalDetails}
+              </span>
+            )}
+          </div>
+          <WorkflowMeta record={r} />
+          <RecordActions
+            record={r}
+            busy={busyId === r._id}
+            noun="report"
+            onMarkSolved={() =>
+              run(
+                r._id,
+                () => client.patch(`/mark-solved-public-garbage/${r._id}`),
+                'Public report marked as solved.'
+              )
+            }
+            onDelete={() =>
+              run(
+                r._id,
+                () => client.delete(`/delete-public-garbage/${r._id}`),
+                'Public report deleted.'
+              )
+            }
+          />
+        </div>
+      ))}
     </div>
   );
 }

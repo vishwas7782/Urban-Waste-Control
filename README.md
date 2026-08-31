@@ -35,11 +35,35 @@ Urban-Waste-Control/
 - **Authentication** — signup with email verification (Nodemailer), JWT login, role-based access
   (`user` vs `municipal`).
 - **Residents (user)** — raise concerns, track their own concerns, report public garbage with photos,
-  view collection schedules.
+  confirm that completed work is genuinely done, view collection schedules.
 - **Municipal staff** — dashboard with summary stats, manage concerns / garbage reports / anonymous
-  public reports (mark resolved, delete), publish collection schedules.
+  public reports (mark resolved, delete once a citizen confirms), publish collection schedules.
+- **Citizen verification** — an employee marking something resolved no longer closes it. The record
+  moves to `awaiting-verification` until a citizen confirms the fix; only then can it be deleted.
+  See [Citizen verification workflow](#-citizen-verification-workflow).
 - **Anonymous public** — report garbage without an account, browse public collection schedules.
 - **Contact** — messages delivered by email.
+
+## ✅ Citizen verification workflow
+
+```
+pending ──(municipal: Mark Solved)──▶ awaiting-verification ──(citizen: "Yes, it's fixed")──▶ verified ──▶ deletable
+                    ▲                                                     │
+                    └──────────(citizen: "No, still there")────────────────┘
+```
+
+- A municipal employee cannot delete a record until a citizen has confirmed it — the API answers
+  `409` on an early delete, and the dashboard hides the Delete button.
+- Employees cannot confirm their own work: all `/verify-*` routes are citizen-only (`403` otherwise).
+- Who may confirm what:
+  - **Concern** — the resident who raised it.
+  - **Garbage report** — the citizen who filed it (any citizen if the report predates reporter
+    tracking and has no `userId`).
+  - **Anonymous public report** — any logged-in citizen.
+- Rejecting sends the record back to `pending`, increments `reopenCount` and stores the citizen's
+  comment in `reopenHistory`, so repeat offenders are visible on the municipal dashboard.
+- Records created before this feature carry the old `resolved` status. They are grandfathered as
+  already-confirmed and stay immediately deletable.
 
 ## 🚀 Getting started
 
@@ -94,8 +118,12 @@ All endpoints are served from the backend root (no `/api` prefix). Authenticated
 | POST | `/raise-concern` | user | Raise a concern |
 | GET | `/view-user-concerns` | user | List own concerns |
 | GET | `/view-concerns` | municipal | List all concerns |
-| PATCH | `/mark-solved/:id` | municipal | Resolve a concern |
-| DELETE | `/delete-concern/:id` | municipal | Delete a concern |
+| PATCH | `/mark-solved/:id` | municipal | Mark a concern fixed → awaiting verification |
+| DELETE | `/delete-concern/:id` | municipal | Delete a concern (only once verified) |
+| GET | `/pending-verifications` | user | Everything awaiting this citizen's confirmation |
+| PATCH | `/verify-concern/:id` | user | Confirm / reject a concern fix |
+| PATCH | `/verify-garbage/:id` | user | Confirm / reject a garbage-report fix |
+| PATCH | `/verify-public-garbage/:id` | user | Confirm / reject an anonymous-report fix |
 | POST | `/update-schedule` | municipal | Publish a schedule |
 | GET | `/view-schedule?area=` | auth | Search schedules |
 | GET | `/public-schedule?area=` | public | Search schedules (no login) |
@@ -105,6 +133,17 @@ All endpoints are served from the backend root (no `/api` prefix). Authenticated
 | GET | `/view-public-garbage-reports` | municipal | List anonymous reports |
 
 (Plus `mark-solved`/`delete` variants for garbage and public-garbage reports, and `GET /health`.)
+
+The `/verify-*` routes take `{ "confirmed": true | false, "comment": "optional note" }`.
+
+## 🧪 Tests
+
+```bash
+npm test
+```
+
+End-to-end coverage of the verification workflow (40 assertions). Needs a MongoDB on
+`localhost:27017`; it uses a throwaway `UwcVerifyTest` database and drops it before and after.
 
 ## 🛡️ Notes
 - Never commit `backend/.env` — it contains secrets. It is git-ignored.

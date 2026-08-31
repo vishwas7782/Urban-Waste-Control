@@ -16,7 +16,7 @@ const sendVerificationEmail = async (name, email, token) => {
     const verificationLink = `${clientUrl}/verify-email?token=${token}`;
 
     const mailOptions = {
-        from: process.env.EMAIL_USER || 'urbanwastecontrol@gmail.com',
+        from: process.env.EMAIL_USER || 'urbanwastecontrolindia@gmail.com',
         to: email,
         subject: 'Email Verification',
         html: `
@@ -51,7 +51,7 @@ const sendVerificationEmail = async (name, email, token) => {
 const sendContactEmail = async ({ name, email, subject, message }) => {
     const mailOptions = {
         from: email,
-        to: process.env.EMAIL_USER || 'urbanwastecontrol@gmail.com',
+        to: process.env.EMAIL_USER || 'urbanwastecontrolindia@gmail.com',
         subject: `New Contact Message: ${subject}`,
         text: `You have received a new message from ${name} (${email}):\n\n${message}`,
     };

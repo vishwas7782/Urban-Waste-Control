@@ -12,6 +12,7 @@ const concernRoutes = require('./routes/concernRoutes');
 const scheduleRoutes = require('./routes/scheduleRoutes');
 const garbageRoutes = require('./routes/garbageRoutes');
 const publicGarbageRoutes = require('./routes/publicGarbageRoutes');
+const verificationRoutes = require('./routes/verificationRoutes');
 
 const app = express();
 
@@ -37,6 +38,7 @@ app.use('/', concernRoutes);
 app.use('/', scheduleRoutes);
 app.use('/', garbageRoutes);
 app.use('/', publicGarbageRoutes);
+app.use('/', verificationRoutes);
 
 // --- 404 + error handling (MUST come after routes) ---
 app.use(notFound);

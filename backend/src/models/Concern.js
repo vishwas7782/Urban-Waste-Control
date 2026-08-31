@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { workflowFields } = require('./workflowFields');
 
 const concernSchema = new mongoose.Schema({
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
@@ -8,7 +9,7 @@ const concernSchema = new mongoose.Schema({
     mobileNum: String,
     issueType: String,
     additionalDetails: String,
-    status: { type: String, default: 'pending' }, // 'pending' or 'resolved'
+    ...workflowFields(), // status + resolve/verify tracking
 });
 
 module.exports = mongoose.model('Concern', concernSchema);

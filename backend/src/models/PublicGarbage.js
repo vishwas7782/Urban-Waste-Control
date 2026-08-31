@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { workflowFields } = require('./workflowFields');
 
 const publicGarbageSchema = new mongoose.Schema({
     publicReportName: String,
@@ -7,8 +8,8 @@ const publicGarbageSchema = new mongoose.Schema({
     publicReportLandmark: String,
     publicReportAdditionalDetails: String,
     publicImageUrl: String, // Absolute URL of the uploaded image
-    status: { type: String, default: 'pending' }, // 'pending' or 'resolved'
     publicReportedAt: { type: Date, default: Date.now },
+    ...workflowFields(), // status + resolve/verify tracking
 });
 
 module.exports = mongoose.model('PublicGarbage', publicGarbageSchema);

@@ -10,18 +10,16 @@ import {
   FiMapPin,
   FiUser,
   FiClock,
+  FiCheckCircle,
+  FiThumbsUp,
+  FiThumbsDown,
 } from 'react-icons/fi';
 import client, { apiErrorMessage } from '../api/client.js';
 import Field from '../components/Field.jsx';
 import Loader from '../components/Loader.jsx';
 import StatusBadge from '../components/StatusBadge.jsx';
-
-const TABS = [
-  { id: 'raise', label: 'Raise a Concern', icon: <FiEdit3 /> },
-  { id: 'concerns', label: 'My Concerns', icon: <FiList /> },
-  { id: 'report', label: 'Report Garbage', icon: <FiCamera /> },
-  { id: 'schedule', label: 'View Schedule', icon: <FiCalendar /> },
-];
+import WorkflowMeta from '../components/WorkflowMeta.jsx';
+import resolveImg from '../utils/imageUrl.js';
 
 const MAX_SIZE = 5 * 1024 * 1024;
 const issueTypes = [
@@ -32,8 +30,44 @@ const issueTypes = [
   'Other',
 ];
 
+const emptyPending = { concerns: [], reports: [], publicReports: [], total: 0 };
+
 export default function UserDashboard() {
   const [tab, setTab] = useState('raise');
+  const [pending, setPending] = useState(emptyPending);
+  const [loadingPending, setLoadingPending] = useState(true);
+
+  // Everything the municipal team says it has fixed and is waiting on this
+  // citizen to confirm.
+  const loadPending = useCallback(async () => {
+    setLoadingPending(true);
+    try {
+      const { data } = await client.get('/pending-verifications');
+      setPending({
+        concerns: Array.isArray(data?.concerns) ? data.concerns : [],
+        reports: Array.isArray(data?.reports) ? data.reports : [],
+        publicReports: Array.isArray(data?.publicReports) ? data.publicReports : [],
+        total: data?.total || 0,
+      });
+    } catch (error) {
+      setPending(emptyPending);
+      toast.error(apiErrorMessage(error, 'Could not load items waiting for your confirmation.'));
+    } finally {
+      setLoadingPending(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadPending();
+  }, [loadPending]);
+
+  const tabs = [
+    { id: 'raise', label: 'Raise a Concern', icon: <FiEdit3 /> },
+    { id: 'concerns', label: 'My Concerns', icon: <FiList /> },
+    { id: 'verify', label: 'Verify Fixes', icon: <FiCheckCircle />, count: pending.total },
+    { id: 'report', label: 'Report Garbage', icon: <FiCamera /> },
+    { id: 'schedule', label: 'View Schedule', icon: <FiCalendar /> },
+  ];
 
   return (
     <div className="page container fade-in">
@@ -41,12 +75,13 @@ export default function UserDashboard() {
         <span className="eyebrow">Resident Dashboard</span>
         <h1>Manage your waste reports</h1>
         <p className="muted" style={{ margin: 0 }}>
-          Raise concerns, report public garbage and check collection schedules.
+          Raise concerns, report public garbage, confirm completed fixes and check collection
+          schedules.
         </p>
       </div>
 
       <div className="tabs" role="tablist">
-        {TABS.map((t) => (
+        {tabs.map((t) => (
           <button
             key={t.id}
             role="tab"
@@ -55,12 +90,16 @@ export default function UserDashboard() {
             onClick={() => setTab(t.id)}
           >
             {t.icon} {t.label}
+            {t.count > 0 && <span className="badge-count">{t.count}</span>}
           </button>
         ))}
       </div>
 
       {tab === 'raise' && <RaiseConcern onDone={() => setTab('concerns')} />}
       {tab === 'concerns' && <MyConcerns />}
+      {tab === 'verify' && (
+        <VerifyFixes pending={pending} loading={loadingPending} refresh={loadPending} />
+      )}
       {tab === 'report' && <ReportGarbage />}
       {tab === 'schedule' && <ViewSchedule />}
     </div>
@@ -250,8 +289,52 @@ function MyConcerns() {
               </span>
             )}
           </div>
+          <WorkflowMeta record={c} />
         </div>
       ))}
+    </div>
+  );
+}
+
+// A municipal employee can mark work done, but only a citizen closes the loop.
+function VerifyFixes({ pending, loading, refresh }) {
+  if (loading) return <Loader label="Loading items awaiting your confirmation..." />;
+
+  if (pending.total === 0) {
+    return (
+      <div className="empty-state">
+        <p style={{ margin: 0 }}>
+          Nothing needs your confirmation right now. When the municipal team marks one of your
+          issues as fixed, it will show up here.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ display: 'grid', gap: '2rem' }}>
+      <p className="muted" style={{ margin: 0, maxWidth: 660 }}>
+        The municipal team has marked these as fixed and cannot close them until you confirm.
+        Choose <strong>Yes, it&apos;s fixed</strong> only if the problem is really gone — choosing{' '}
+        <strong>No, still there</strong> sends it straight back to them.
+      </p>
+
+      {VERIFY_KINDS.map((kind) => {
+        const items = pending[kind.key] || [];
+        if (items.length === 0) return null;
+        return (
+          <section key={kind.key}>
+            <h2 style={{ fontSize: '1.15rem', marginBottom: '1rem' }}>
+              {kind.heading} <span className="muted">({items.length})</span>
+            </h2>
+            <div className="grid grid-2">
+              {items.map((item) => (
+                <VerifyCard key={item._id} kind={kind} record={item} refresh={refresh} />
+              ))}
+            </div>
+          </section>
+        );
+      })}
     </div>
   );
 }
@@ -263,6 +346,122 @@ const reportInit = {
   reportLandmark: '',
   reportAdditionalDetails: '',
 };
+
+// The three kinds of record a citizen can be asked to confirm. Each one has its
+// own field names on the server, so the display bits are declared per kind.
+const VERIFY_KINDS = [
+  {
+    key: 'concerns',
+    heading: 'Concerns you raised',
+    endpoint: (id) => `/verify-concern/${id}`,
+    title: (r) => r.issueType || 'Concern',
+    image: () => '',
+    lines: (r) => [
+      ['Locality', r.locality],
+      ['House No', r.houseNumber],
+      ['Details', r.additionalDetails],
+    ],
+  },
+  {
+    key: 'reports',
+    heading: 'Garbage reports you filed',
+    endpoint: (id) => `/verify-garbage/${id}`,
+    title: (r) => r.reportName || 'Garbage Report',
+    image: (r) => r.imageUrl,
+    lines: (r) => [
+      ['Location', r.reportLocation],
+      ['Landmark', r.reportLandmark],
+      ['Details', r.reportAdditionalDetails],
+    ],
+  },
+  {
+    key: 'publicReports',
+    heading: 'Public reports from your area',
+    endpoint: (id) => `/verify-public-garbage/${id}`,
+    title: (r) => r.publicReportName || 'Public Report',
+    image: (r) => r.publicImageUrl,
+    lines: (r) => [
+      ['Location', r.publicReportLocation],
+      ['Landmark', r.publicReportLandmark],
+      ['Details', r.publicReportAdditionalDetails],
+    ],
+  },
+];
+
+function VerifyCard({ kind, record, refresh }) {
+  const [comment, setComment] = useState('');
+  const [busy, setBusy] = useState(false);
+  const image = resolveImg(kind.image(record));
+  const lines = kind.lines(record).filter(([, value]) => value);
+
+  const respond = async (confirmed) => {
+    setBusy(true);
+    try {
+      const { data } = await client.patch(kind.endpoint(record._id), {
+        confirmed,
+        comment: comment.trim() || undefined,
+      });
+      toast.success(data?.message || 'Thanks for your response!');
+      setComment('');
+      await refresh();
+    } catch (error) {
+      toast.error(apiErrorMessage(error, 'Could not record your response.'));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="card record-card">
+      {image && (
+        <img
+          className="thumb"
+          src={image}
+          alt={kind.title(record)}
+          onError={(e) => {
+            e.currentTarget.style.display = 'none';
+          }}
+        />
+      )}
+      <div className="record-head">
+        <h3 className="record-title">{kind.title(record)}</h3>
+        <StatusBadge status={record.status} />
+      </div>
+
+      {lines.length > 0 && (
+        <div className="record-meta">
+          {lines.map(([label, value]) => (
+            <span key={label}>
+              <strong>{label}:</strong> {value}
+            </span>
+          ))}
+        </div>
+      )}
+
+      <WorkflowMeta record={record} />
+
+      <div className="verify-box">
+        <p className="verify-question">Has this actually been fixed?</p>
+        <textarea
+          className="textarea"
+          value={comment}
+          onChange={(e) => setComment(e.target.value)}
+          placeholder="Add a note for the municipal team (optional)"
+          aria-label="Comment for the municipal team"
+          maxLength={500}
+        />
+        <div className="record-actions">
+          <button className="btn btn-primary btn-sm" disabled={busy} onClick={() => respond(true)}>
+            <FiThumbsUp aria-hidden="true" /> Yes, it&apos;s fixed
+          </button>
+          <button className="btn btn-danger btn-sm" disabled={busy} onClick={() => respond(false)}>
+            <FiThumbsDown aria-hidden="true" /> No, still there
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function ReportGarbage() {
   const [form, setForm] = useState(reportInit);

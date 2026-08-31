@@ -311,6 +311,27 @@ input[type='file'].input {
   color: #15803d;
 }
 
+/* Employee says fixed, citizen has not confirmed yet. */
+.badge-awaiting {
+  background: rgba(2, 132, 199, 0.14);
+  color: #0369a1;
+}
+
+.badge-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.35rem;
+  height: 1.35rem;
+  padding: 0 0.35rem;
+  margin-left: 0.35rem;
+  border-radius: 999px;
+  background: var(--danger);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
 /* ---------- Loader ---------- */
 .loader-wrap {
   display: flex;
@@ -751,6 +772,50 @@ input[type='file'].input {
   gap: 0.6rem;
   flex-wrap: wrap;
   margin-top: 0.25rem;
+}
+
+/* ---------- Verification workflow ---------- */
+.workflow-meta {
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+  padding: 0.65rem 0.8rem;
+  border-radius: 10px;
+  background: rgba(2, 132, 199, 0.07);
+  border: 1px solid rgba(2, 132, 199, 0.18);
+}
+
+.workflow-meta-warn {
+  color: #b45309;
+}
+
+.workflow-hint {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #0369a1;
+}
+
+.verify-box {
+  display: grid;
+  gap: 0.6rem;
+  padding-top: 0.25rem;
+  border-top: 1px dashed var(--border);
+}
+
+.verify-question {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.verify-box .textarea {
+  min-height: 70px;
+  font-size: 0.9rem;
 }
 
 .thumb {
