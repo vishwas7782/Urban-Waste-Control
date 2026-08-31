@@ -601,8 +601,13 @@ input[type='file'].input {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(12px) saturate(1.6);
+  /* Deliberately opaque with NO backdrop-filter here. A non-none
+     backdrop-filter makes this element the containing block for its
+     fixed-position descendants, which collapsed the drawer and the overlay
+     into the 60px-tall bar — the menu opened with nothing visible inside it.
+     The frosted treatment comes back at >=900px, where .nav-menu is static
+     and nothing inside the navbar is position: fixed any more. */
+  background: var(--surface);
   border-bottom: 1px solid var(--border);
 }
 
@@ -699,10 +704,16 @@ input[type='file'].input {
   background: var(--surface-2);
 }
 
-/* Dimmer behind the mobile drawer. Rendered only while the menu is open. */
+/* Dimmer behind the mobile drawer. Rendered only while the menu is open.
+   Starts below the bar rather than at inset: 0 so it never paints over the
+   close button — it shares the navbar's stacking context and would otherwise
+   sit on top of the hamburger, which has no z-index of its own. */
 .nav-overlay {
   position: fixed;
-  inset: 0;
+  top: var(--nav-h);
+  right: 0;
+  bottom: 0;
+  left: 0;
   z-index: 80;
   background: rgba(15, 23, 42, 0.45);
   backdrop-filter: blur(2px);
@@ -1429,6 +1440,13 @@ input[type='file'].input {
 @media (min-width: 900px) {
   :root {
     --nav-h: 68px;
+  }
+
+  /* Safe to frost now: the menu below is static, so making .navbar a
+     containing block for fixed descendants no longer affects anything. */
+  .navbar {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px) saturate(1.6);
   }
 
   .hamburger,
